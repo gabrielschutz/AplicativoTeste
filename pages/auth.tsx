@@ -1,9 +1,36 @@
 import Input from "@/components/Input";
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import axios from 'axios';
+import { signIn } from 'next-auth/react'
 
 const Auth = () => {
   const [usuario, setUsuario] = useState('')
   const [senha, setSenha] = useState('')
+
+
+  const register = useCallback(async () => {
+    try {
+      await axios.post('/api/register', {
+        usuario,
+        senha,
+      });
+    } catch (error) {
+        console.log(error);
+    }
+  }, [usuario, senha]);
+
+  const login = useCallback(async () => {
+    try {
+      await signIn('credentials',{
+        usuario,
+        senha,
+        redirect: false,
+        callbackUrl: '/'
+      });
+    } catch (error) {
+      console.log(error)
+    }
+  },[usuario, senha]);
 
   return (
     <div className="relative h-full w-full bg-[url('/images/factory-bg.jpg')] bg-no-repeat bg-center bg-fixed bg-cover">
@@ -16,23 +43,23 @@ const Auth = () => {
             <div className="flex flex-col items-center justify-items-center">
               <img src="/images/logo.png" alt="Logo" className="h-22 mb-8" />
             </div>
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4"> 
               <Input
                 label="Usuario"
-                onChange={(ev) => setUsuario(ev.target.value)}
+                onChange={(ev: any) => setUsuario(ev.target.value)}
                 id="usuario"
                 type="usuario"
                 value={usuario}
               />
               <Input
                 label="Senha"
-                onChange={(ev) => setSenha(ev.target.value)}
+                onChange={(ev: any) => setSenha(ev.target.value)}
                 id="senha"
                 value={senha}
               />
 
             </div>
-            <button className="bg-zinc-500 py-3 text-white rounded-md w-full mt-10 hover:bg-zinc-300 transition">
+            <button onClick={login} className="bg-zinc-500 py-3 text-white rounded-md w-full mt-10 hover:bg-zinc-300 transition">
               Entrar
             </button>
             
