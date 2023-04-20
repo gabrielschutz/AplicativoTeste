@@ -1,6 +1,6 @@
-import useCurrentUser from "@/hooks/useCurrentUser";
 import { NextPageContext } from "next"
 import { getSession, signOut } from "next-auth/react"
+import useCurrentUser from "@/hooks/useCurrentUser";
 
 export async function getServerSideProps(context: NextPageContext){
   const session = await getSession(context);
@@ -19,14 +19,15 @@ export async function getServerSideProps(context: NextPageContext){
 
 }
 
-export default function Home() {
-  return (
+const Profiles = () => {
+  const {data : userP } = useCurrentUser();
+  return(
     <div>
-      <h1 className='text-2xl'>
-        Hello World
-      </h1>
-      <p>Login in as: </p>
-      <button className="h-10 w-full bg-white" onClick={() => signOut()}>Sair</button>
+      <p>
+        Oi
+      </p>
     </div>
   )
 }
+
+export default Profiles;

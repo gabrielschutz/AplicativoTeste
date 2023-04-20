@@ -1,34 +1,40 @@
-import NextAuth from 'next-auth'
+import NextAuth from 'next-auth';
 import Credentials from 'next-auth/providers/credentials'
-
 import prismadb from '@/lib/prismadb'
 
-export default NextAuth({
+export default NextAuth = {
   providers: [
-    Credentials({
-      id: 'credentials',
-      name: 'Credentials',
+    CredentialsProvider({
+      name: 'credentials',
       credentials: {
-        usuarioRecebido: {
+        usuario: {
           label: 'Usuario',
           type: 'text',
         },
-        senhaRecebida: {
+        senha: {
           label: 'Senha',
           type: 'password'
         }
       },
       async authorize(credentials) {
-        if (!credentials?.usuarioRecebido || !credentials?.senhaRecebida) {
+        if (!credentials?.usuario || !credentials?.senha) {
           throw new Error('Usuario e Senha Requeridos');
         }
 
         const user = await prismadb.user.findUnique({ where: {
-          usuarioid: credentials.usuarioRecebido
+          usuarioid: credentials.usuario
         }});
 
-        if (!user) {
-          throw new Error('Usuario Nao existe');
+        if (!user || !user.senha) {
+          throw new Error('Usuario nao existente');
+        }
+
+        function comparePasswords(password1: string, password2: string): boolean {
+          return password1 === password2;
+        }
+
+        if (!(comparePasswords(credentials.senha, user.senha))) {
+          throw new Error('Senha incorreta');
         }
 
         return user;
@@ -46,4 +52,4 @@ export default NextAuth({
     secret: process.env.NEXTAUTH_JWT_SECRET,
   },
   secret: process.env.NEXTAUTH_SECRET
-});
+};

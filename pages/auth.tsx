@@ -2,11 +2,28 @@ import Input from "@/components/Input";
 import { useCallback, useState } from "react";
 import axios from 'axios';
 import { signIn } from 'next-auth/react'
+import { useRouter } from "next/router";
+
 
 const Auth = () => {
   const [usuario, setUsuario] = useState('')
   const [senha, setSenha] = useState('')
 
+  const login = useCallback(async () => {
+    try {
+      const result = await signIn('credentials', {
+        usuario,
+        senha,
+        callbackUrl: '/profiles'
+      });
+      if (result?.error) {
+        throw new Error(result.error);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  }, [usuario, senha]);
+  
 
   const register = useCallback(async () => {
     try {
@@ -18,19 +35,6 @@ const Auth = () => {
         console.log(error);
     }
   }, [usuario, senha]);
-
-  const login = useCallback(async () => {
-    try {
-      await signIn('credentials',{
-        usuario,
-        senha,
-        redirect: false,
-        callbackUrl: '/'
-      });
-    } catch (error) {
-      console.log(error)
-    }
-  },[usuario, senha]);
 
   return (
     <div className="relative h-full w-full bg-[url('/images/factory-bg.jpg')] bg-no-repeat bg-center bg-fixed bg-cover">
@@ -62,7 +66,6 @@ const Auth = () => {
             <button onClick={login} className="bg-zinc-500 py-3 text-white rounded-md w-full mt-10 hover:bg-zinc-300 transition">
               Entrar
             </button>
-            
           </div>
         </div>
       </div>
