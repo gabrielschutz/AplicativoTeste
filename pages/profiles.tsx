@@ -27,11 +27,7 @@ const Profiles = () => {
   return (
 
       <div>
-        <Sidebar/>
-        <div>
-        <h1>Home Page Oi {session?.user?.email}</h1>
-        <p>Teste to the home page.</p>
-      </div>
+  
       </div>
     
 

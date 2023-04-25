@@ -2,7 +2,25 @@ import Input from "@/components/Input";
 import { useCallback, useState } from "react";
 import axios from 'axios';
 import { signIn } from 'next-auth/react'
-import { useRouter } from "next/router";
+import { getSession } from "next-auth/react"
+import { NextPageContext } from "next"
+
+export async function getServerSideProps(context: NextPageContext){
+  const session = await getSession(context);
+  if(session){
+    return {
+      redirect: {
+        destination: '/',
+        permanent: false,
+      }
+    }
+  }
+
+  return {
+    props: {}
+  }
+
+}
 
 
 const Auth = () => {
@@ -14,7 +32,7 @@ const Auth = () => {
       const result = await signIn('credentials', {
         usuario,
         senha,
-        callbackUrl: '/profiles'
+        callbackUrl: '/'
       });
       if (result?.error) {
         throw new Error(result.error);
@@ -59,6 +77,7 @@ const Auth = () => {
                 label="Senha"
                 onChange={(ev: any) => setSenha(ev.target.value)}
                 id="senha"
+                type="password"
                 value={senha}
               />
 
