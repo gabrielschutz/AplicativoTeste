@@ -1,11 +1,11 @@
 
 import { NextPageContext } from "next"
 import { getSession, signOut, useSession } from "next-auth/react"
-import useCurrentUser from "@/hooks/useCurrentUser";
+import Sidebar from "@/components/SideBar/Sidebar";
 
-export async function getServerSideProps(context: NextPageContext){
+export async function getServerSideProps(context: NextPageContext) {
   const session = await getSession(context);
-  if(!session){
+  if (!session) {
     return {
       redirect: {
         destination: '/auth',
@@ -23,13 +23,18 @@ export async function getServerSideProps(context: NextPageContext){
 
 const Profiles = () => {
   const { data: session, status } = useSession()
-  
-  return(
-    <div>
-      <p>
-        Oi {session?.user?.email}
-      </p>   
-    </div>
+
+  return (
+
+      <div>
+        <Sidebar/>
+        <div>
+        <h1>Home Page Oi {session?.user?.email}</h1>
+        <p>Teste to the home page.</p>
+      </div>
+      </div>
+    
+
   )
 }
 
