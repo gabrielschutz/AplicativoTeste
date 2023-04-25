@@ -1,6 +1,6 @@
-import useCurrentUser from "@/hooks/useCurrentUser";
 import { NextPageContext } from "next"
-import { getSession, signOut } from "next-auth/react"
+import { getSession, signOut, useSession } from "next-auth/react"
+import Sidebar from "@/components/SideBar/Sidebar";
 
 export async function getServerSideProps(context: NextPageContext){
   const session = await getSession(context);
@@ -20,13 +20,13 @@ export async function getServerSideProps(context: NextPageContext){
 }
 
 export default function Home() {
+  const { data: session, status } = useSession()
   return (
-    <div>
-      <h1 className='text-2xl'>
-        Hello World
-      </h1>
-      <p>Login in as: </p>
-      <button className="h-10 w-full bg-white" onClick={() => signOut()}>Sair</button>
+    <div className="font-popp ins antialiased">
+      <div id="view" className="flex h-full w-screen flex-row">
+      <Sidebar nome={session?.user?.email ?? "Usuário desconhecido"} />
+      <h1>Oiee</h1>
+      </div>
     </div>
   )
 }
