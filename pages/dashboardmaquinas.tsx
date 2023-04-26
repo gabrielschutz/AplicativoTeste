@@ -48,9 +48,6 @@ const Dashboardmaquinas = ({ user, teste }: DashboardmaquinasProps) => {
       <div id="view" className="flex h-full w-screen flex-row">
       <Sidebar nome={session?.user?.email ?? "Usuário desconhecido"}/>
       <div className="p-4 flex flex-wrap gap-4 mt-2">
-        
-        {dashs.map(dash => <CompDashMaquinas />)}
- 
       </div>
       
       </div>
