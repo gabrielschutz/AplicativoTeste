@@ -6,7 +6,6 @@ interface User {
   id: string;
   email: string | null;
   name: string | null;
-  nomedobicho: string;
 }
 
 export default NextAuth({
@@ -45,8 +44,8 @@ export default NextAuth({
         }
 
         return {
-          email : user.senha,
-          nomedobicho: user.nome,
+          email : user.usuarioid,
+          name: user.nome,
         } as User;
       }
     })

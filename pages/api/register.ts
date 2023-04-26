@@ -8,13 +8,14 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(405).end();
     }
     
-    const {usuario, senha } = req.body;
+    const {nomeUsuario, senhaUsuario, usernameUsuario, roleUsuario } = req.body;
 
     const user = await prismadb.user.create({
       data: {
-        usuarioid : usuario,
-        senha : senha,
-        nome : 'Admin',
+        usuarioid : usernameUsuario,
+        senha : senhaUsuario,
+        nome : nomeUsuario,
+        role : roleUsuario,
       }
     })
 
