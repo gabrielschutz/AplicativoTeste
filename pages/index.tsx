@@ -24,7 +24,7 @@ export default function Home() {
   return (
     <div className="font-popp ins antialiased">
       <div id="view" className="flex h-full w-screen flex-row">
-      <Sidebar nome={session?.user?.email ?? "Usuário desconhecido"} />
+      <Sidebar nome={session?.user?.name ?? "Usuário desconhecido"}/>
       <h1>Oiee</h1>
       </div>
     </div>
