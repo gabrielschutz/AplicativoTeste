@@ -9,6 +9,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     
     const { nomeUsuario, senhaUsuario, usernameUsuario, roleUsuario } = req.body;
 
+    const existingUser = await prismadb.user.findUnique({
+      where: {
+        usuarioid: usernameUsuario
+      }
+    })
+
+    if(existingUser){
+      return res.status(200).json({statusSaida : "UsuarioExistente"});
+    }
+
     const user = await prismadb.user.create({
       data: {
         usuarioid: usernameUsuario,
@@ -18,7 +28,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       }
     });
 
-    return res.status(200).json({teste : "teste2"});
+    return res.status(200).json({statusSaida : "UsuarioCriado"});
   } catch (error) {
     return res.status(400).json({ error: `Something went wrong: ${error}` });
   }

@@ -13,7 +13,9 @@ export function Sidebar(props: SidebarProps) {
         <div id="sidebar" className="w-30 h-screen overflow-x-hidden bg-gray-300 px-3 shadow-xl transition-transform duration-300 ease-in-out md:block md:w-60 lg:w-60" x-show="sidenav">
           <div className="mt-10 space-y-6 md:space-y-10">
             <h1 className="text-center text-4xl font-bold md:hidden">D<span className="text-teal-600">.</span></h1>
+            <Link href="/">
             <img src="/images/logobgb.png" alt="Avatar user" className="mx-auto w-40" />
+            </Link>
             <div id="profile" className="space-y-3">
               <div>
                 <h2 className="text-center text-xs font-medium text-teal-500 md:text-sm">{props.nome}</h2>
