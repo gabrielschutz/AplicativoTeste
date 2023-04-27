@@ -58,17 +58,25 @@ const Configs = ({ user, usuarioLogado, dashsBoardMaquinas }: DashboardmaquinasP
     opeMaq: '',
   });
 
+  const [registerUserStatus, setRegisterUserStatus] = useState('');
+
   const register = useCallback(async () => {
     try {
       const { nome, senha, username, role } = usuario;
 
-      await axios.post('/api/register', {
+      const response = await axios.post('/api/register', {
         nomeUsuario: nome,
         senhaUsuario: senha,
         usernameUsuario: username,
         roleUsuario: role,
-
       });
+
+      if (response.data.statusSaida === 'UsuarioCriado') {
+        setRegisterUserStatus('created');
+      } else if (response.data.statusSaida === 'UsuarioExistente') {
+        setRegisterUserStatus('uncreated');
+      }
+
     } catch (error) {
       console.log(error);
     }
@@ -94,8 +102,7 @@ const Configs = ({ user, usuarioLogado, dashsBoardMaquinas }: DashboardmaquinasP
         setRegisterMaqStatus('created');
       } else if (response.data.statusSaida === 'Includes') {
         setRegisterMaqStatus('inclused');
-        console.log("Sua Mae e minha");
-      }   
+      }
 
     } catch (error) {
       console.log(error);
@@ -261,11 +268,21 @@ const Configs = ({ user, usuarioLogado, dashsBoardMaquinas }: DashboardmaquinasP
                     </select>
                   </div>
                   <div className="text-center">
-                    <button className="bg-zinc-600 hover:bg-teal-500 text-white font-bold py-2 px-4 rounded " onClick={register}>
+                  <button className="bg-zinc-600 hover:bg-teal-500 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); register(); }}>
                       Enviar
                     </button>
                   </div>
                 </form>
+                {registerUserStatus === 'created' && (
+                  <div className="p-4 bg-teal-500 rounded shadow-lg m-3">
+                    <p>Usuário criado com sucesso.</p>
+                  </div>
+                )}
+                {registerUserStatus === 'uncreated' && (
+                  <div className="p-4 bg-teal-500 rounded shadow-lg m-3">
+                    <p>Esse username de usuário não está disponível!</p>
+                  </div>
+                )}
               </div>
             </div>
           );
