@@ -6,7 +6,7 @@ interface SidebarProps {
   uuid?: string;
 }
 
-export function dashmaquinas(props: SidebarProps) {
+export function Dashmaquinas(props: SidebarProps) {
   const [status, setStatus] = useState(null);
 
   useEffect(() => {
@@ -47,4 +47,4 @@ export function dashmaquinas(props: SidebarProps) {
   );
 }
 
-export default dashmaquinas;
+export default Dashmaquinas;
