@@ -1,6 +1,7 @@
 import { NextPageContext } from "next"
 import { getSession, signOut, useSession } from "next-auth/react"
 import Sidebar from "@/components/SideBar/Sidebar";
+import prismadb from '@/lib/prismadb'
 
 interface indexProps {
   user: any,
