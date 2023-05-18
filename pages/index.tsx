@@ -1,6 +1,7 @@
 import { NextPageContext } from "next"
 import { getSession, signOut, useSession } from "next-auth/react"
 import Sidebar2 from "@/components/SideBar/Sidebar2";
+import prismadb from "@/lib/prismadb";
 
 interface indexProps {
   user: any,
@@ -34,8 +35,6 @@ export async function getServerSideProps(context: NextPageContext) {
 
 const Home = ({ user, usuarioLogado }: indexProps) => {
   const { data: session, status } = useSession()
-  //<Sidebar nome={session?.user?.name ?? "Usuário desconhecido"} role={usuarioLogado?.role} />
-  //<h1 className="text-5xl font-extrabold dark:text-gray-700 mt-8 mb-4">Bem vindo: {usuarioLogado?.nome} </h1>
   return (
     
     <div className="flex">
