@@ -1,15 +1,15 @@
 import { NextPageContext } from "next"
 import { getSession, signOut, useSession } from "next-auth/react"
-import Sidebar from "@/components/SideBar/Sidebar";
+import Sidebar2 from "@/components/SideBar/Sidebar2";
 
 interface indexProps {
   user: any,
   usuarioLogado: any,
 }
 
-export async function getServerSideProps(context: NextPageContext){
+export async function getServerSideProps(context: NextPageContext) {
   const session = await getSession(context);
-  if(!session){
+  if (!session) {
     return {
       redirect: {
         destination: '/auth',
@@ -34,12 +34,18 @@ export async function getServerSideProps(context: NextPageContext){
 
 const Home = ({ user, usuarioLogado }: indexProps) => {
   const { data: session, status } = useSession()
+  //<Sidebar nome={session?.user?.name ?? "Usuário desconhecido"} role={usuarioLogado?.role} />
+  //<h1 className="text-5xl font-extrabold dark:text-gray-700 mt-8 mb-4">Bem vindo: {usuarioLogado?.nome} </h1>
   return (
-    <div className="font-popp ins antialiased">
-      <div id="view" className="flex h-full w-screen flex-row">
-      <Sidebar nome={session?.user?.name ?? "Usuário desconhecido"} role={usuarioLogado?.role} />
-      <h1 className="text-5xl font-extrabold dark:text-gray-700 mt-8 mb-4">Bem vindo: {usuarioLogado?.nome} </h1>
-      </div>
+    
+    <div className="flex">
+      <Sidebar2 nome={session?.user?.name ?? "Usuário desconhecido"} role={usuarioLogado?.role} />
+      <div className="hidden lg:block h-screen px-1 items-center justify-center w-full">
+          <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">Projeto Toyota</h1>
+          <div className="flex flex-col items-center space-y-4">
+            <p>Bem Vindo {session?.user?.name}</p>
+          </div>
+        </div>
     </div>
   )
 }

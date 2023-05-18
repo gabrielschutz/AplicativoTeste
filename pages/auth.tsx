@@ -82,7 +82,7 @@ const Auth = () => {
               />
 
             </div>
-            <button onClick={login} className="bg-zinc-500 py-3 text-white rounded-md w-full mt-10 hover:bg-zinc-300 transition">
+            <button onClick={login} className="bg-zinc-500 py-3 text-white rounded-md w-full mt-10 hover:bg-teal-500 hover:text-white transition">
               Entrar
             </button>
           </div>
