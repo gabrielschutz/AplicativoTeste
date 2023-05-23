@@ -56,13 +56,14 @@ const Dashboardmaquinas = ({ user, usuarioLogado, dashs }: DashboardmaquinasProp
         <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">Máquinas </h1>
         <div className="flex flex-col items-center space-y-4">
           <div className="flex flex-wrap gap-4">
-            {dashs.map((dash: { id: string, nomeMaq: string, uuid: string, operador: string, idMaq: string }) => (
-              <CompDashMaquinas key={dash.id} uuid={dash.uuid} nomeMaq={dash.nomeMaq} operador={dash.operador} idMaq={dash.idMaq} />
+            {dashs.map((dash: { id: string, nomeMaq: string, uuid: string, operador: string }) => (
+              <CompDashMaquinas key={dash.id} uuid={dash.uuid} nomeMaq={dash.nomeMaq} operador={dash.operador} />
             ))}
           </div>
         </div>
       </div>
     </div>
+
   )
 }
 

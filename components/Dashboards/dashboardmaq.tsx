@@ -2,14 +2,15 @@ import React, { useRef } from "react";
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 
-interface SidebarProps {
+interface DashmaqProps {
   nomeMaq?: string;
   operador?: string;
+  idMaq?: string;
   uuid?: string;
 }
 
 
-export function Dashmaquinas(props: SidebarProps) {
+export function Dashmaquinas(props: DashmaqProps) {
 
   const [status, setStatus] = useState(null);
 
@@ -43,17 +44,13 @@ export function Dashmaquinas(props: SidebarProps) {
   }
 
   return (
-    <div className={`flex items-center rounded-3xl ${statusColor} p-3 shadow-xl h-40 w-70`}>
+    <div className={`flex items-center rounded-3xl ${statusColor} p-3 shadow-xl h-40 min-w-[300px]`}>
       <div>
-        <p className="text-grey-900 text-base font-semibold">DashBoard Maquina: {props.nomeMaq}</p>
+        <p className="text-grey-900 text-base font-semibold">Nome: {props.nomeMaq}</p>
         <p className=" text-grey-900 text-xs font-semibold">Operador: {props.operador}</p>
         <p className=" text-grey-900 text-xs font-semibold">UUID Lora: {props.uuid}</p>
+        <p className=" text-grey-900 text-xs font-semibold">ID Maq:{props.idMaq}</p>
         <p className=" text-grey-900 text-xs font-semibold">Status: {status} </p>
-      </div>
-      <div className="m-8">
-        <button className="bg-blue-500 hover:bg-zinc-600 text-white font-bold py-2 px-4 rounded-full">
-          Resetar
-        </button>
       </div>
     </div>
   );

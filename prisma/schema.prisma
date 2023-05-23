@@ -12,25 +12,32 @@ model User {
   nome      String?
   usuarioid String? @unique
   senha     String
+  unidade   String
   role      String?
 }
 
 model DashMaquinas {
-  id       String   @id @default(auto()) @map("_id") @db.ObjectId
-  idMaq    String?  @unique
-  nomeMaq  String?
-  uuid     String?
-  status   String?
-  operador String?
-  gerentes String[]
+  id           String      @id @default(auto()) @map("_id") @db.ObjectId
+  idMaq        String?     @unique
+  nomeMaq      String?
+  uuid         String?
+  status       String?
+  operador     String?
+  gerentes     String[]
+  DashLinhas   DashLinhas? @relation(fields: [dashLinhasId], references: [id])
+  dashLinhasId String?     @db.ObjectId
 }
 
 model DashLinhas {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @db.ObjectId
+  id                  String         @id @default(auto()) @map("_id") @db.ObjectId
+  idLinha             String         @unique
+  nomeLinha           String
+  unidade             String?
+  maquinasCadastradas String[]
+  maquinas            DashMaquinas[]
 }
 
 model DashFabricas {
-  id     String @id @default(auto()) @map("_id") @db.ObjectId
-  userId String @db.ObjectId
+  id        String @id @default(auto()) @map("_id") @db.ObjectId
+  idUnidade String @db.ObjectId
 }
