@@ -58,19 +58,18 @@ const DashboardLinhas = ({
         <div className="flex flex-col items-center space-y-4">
           <div className="flex flex-wrap gap-4 bg-gray-400 rounded-2xl">
             {linhas.map((linha: any) => (
-              <div key={linha.idLinha}>
+              <div key={linha.idLinha} className="mb-4">
                 <h2 className="flex flex-col items-center space-y-4 text-2xl font-extrabold dark:text-yellow-500 mb-4 mt-2">{linha.nomeLinha}</h2>
-                <div>
-                {linha.maquinas.map((maquina: any) => (
-                  <div className="m-4">
-                    <Dashmaquinas
-                    key={maquina.idMaq}
-                    nomeMaq={maquina.nomeMaq}
-                    operador={maquina.operador}
-                    uuid={maquina.uuid}
-                  />
-                  </div>
-                ))}
+                <div className="flex flex-wrap gap-4">
+                  {linha.maquinas.map((maquina: any) => (
+                    <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5" key={maquina.idMaq}>
+                      <Dashmaquinas
+                        nomeMaq={maquina.nomeMaq}
+                        operador={maquina.operador}
+                        uuid={maquina.uuid}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
             ))}
