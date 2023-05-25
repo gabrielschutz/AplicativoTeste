@@ -57,8 +57,8 @@ const DashboardLinhas = ({
         <h1 className="flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8">Linhas</h1>
         <div className="flex flex-col items-center space-y-4">
           <div className="flex flex-wrap gap-4 bg-gray-400 rounded-2xl">
-            {linhas.map((linha: any) => (
-              <div key={linha.idLinha} className="mb-4">
+            {linhas.map((linha: any, index: number) => (
+              <div key={index} className="mb-4"> {/* Adicione a chave "key" com o valor "index" */}
                 <h2 className="flex flex-col items-center space-y-4 text-2xl font-extrabold dark:text-yellow-500 mb-4 mt-2">{linha.nomeLinha}</h2>
                 <div className="flex flex-wrap gap-4">
                   {linha.maquinas.map((maquina: any) => (
@@ -74,6 +74,7 @@ const DashboardLinhas = ({
               </div>
             ))}
           </div>
+
         </div>
       </div>
     </div>
