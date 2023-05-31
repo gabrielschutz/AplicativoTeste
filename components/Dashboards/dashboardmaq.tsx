@@ -1,46 +1,58 @@
-import React, { useEffect, useState } from 'react';
-import useWebSocket, { ReadyState } from 'react-use-websocket';
-
-interface DashmaqProps {
-  nomeMaq?: string;
-  operador?: string;
-  idMaq?: string;
-  uuid?: string;
-}
+import { DashmaqProps } from "@/types/types";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
 
 export function Dashmaquinas(props: DashmaqProps) {
-  const [status, setStatus] = useState(null);
-  
-  const [socketUrl, setSocketUrl] = useState('ws://192.168.0.102:3001/');
+  const [statusColor, setStatusColor] = useState("");
+  const [statusName, setStatusName] = useState("");
 
-  const [messageHistory, setMessageHistory] = useState<any[]>([]); 
-
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+  function getStatusColor(value: String) {
+    if(value == '1'){
+      setStatusName('Ativo');
+      setStatusColor("bg-green-400");
+    } else if(value == '2'){
+      setStatusColor("bg-orange-300");
+      setStatusName('Atenção');
+    } else {
+      setStatusColor("bg-red-400");
+      setStatusName("Manutenção");
+    }
+  }
 
   useEffect(() => {
-    if (lastMessage !== null) {
-      setMessageHistory((prev) => [...prev, lastMessage]); 
+    getStatusColor(props.status ?? '');
+    console.log('pegou a cor!')
+  }, [props.status])
+
+  async function handleDisableMaquina(status: String){
+    try {
+      await axios.post('http://localhost:3002/changeStatus', {
+        codigo: props.codigo,
+        status: status
+      });
+    } catch (error) {
+        console.log(error);
     }
-  }, [lastMessage]); 
-
-  let statusColor;
-
-  if (status === 'on') {
-    statusColor = 'bg-green-400';
-  } else if (status === 'off') {
-    statusColor = 'bg-red-400';
-  } else {
-    statusColor = 'bg-orange-300';
   }
 
   return (
-    <div className={`flex items-center rounded-3xl ${statusColor} p-3 shadow-xl h-40 min-w-[300px]`}>
+    <div
+      className={`flex items-center rounded-3xl ${statusColor} p-3 shadow-xl h-40 min-w-[300px]`}
+    >
       <div>
-        <p className="text-grey-900 text-base font-semibold">Nome: {props.nomeMaq}</p>
-        <p className=" text-grey-900 text-xs font-semibold">Operador: {props.operador}</p>
-        <p className=" text-grey-900 text-xs font-semibold">UUID Lora: {props.uuid}</p>
-        <p className=" text-grey-900 text-xs font-semibold">ID Maq:{props.idMaq}</p>
-        <p className=" text-grey-900 text-xs font-semibold">Status: {status} </p>
+        <p className="text-grey-900 text-base font-semibold">
+          Nome: {props.nome}
+        </p>
+        <p className=" text-grey-900 text-xs font-semibold">
+          Operador: {props.nomeOperador}
+        </p>
+        <p className=" text-grey-900 text-xs font-semibold">
+          UUID Lora: {props.idIot}
+        </p>
+        <p className=" text-grey-900 text-xs font-semibold">
+          ID Maq: {props.codigo}
+        </p>
+        <p className=" text-grey-900 text-xs font-semibold">Status: {statusName} </p>
       </div>
     </div>
   );

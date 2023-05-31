@@ -4,13 +4,13 @@ import { getSession, useSession } from "next-auth/react"
 import Sidebar2 from "@/components/SideBar/Sidebar2";
 import prismadb from '@/lib/prismadb'
 import CompDashMaquinas from '../components/Dashboards/dashboardmaq'
-import CompDashMaquinasWeb from '../components/Dashboards/dashboardmaqwebsocket'
-import { useState } from "react";
+import React, { useEffect, useState } from "react";
+import useWebSocket, { ReadyState } from "react-use-websocket";
+import { DashmaqProps } from "@/types/types";
 
 interface DashboardmaquinasProps {
   user: any,
   usuarioLogado: any
-  dashs: any
 }
 
 export async function getServerSideProps(context: NextPageContext) {
@@ -31,23 +31,36 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  const dashs = await prismadb.dashMaquinas.findMany({
-    where: {
-      gerentes: {
-        hasEvery: [session.user?.name ?? ''],
-      },
-    },
-  })
-
+  // const dashs = await prismadb.dashMaquinas.findMany({
+  //   where: {
+  //     gerentes: {
+  //       hasEvery: [session.user?.name ?? ''],
+  //     },
+  //   },
+  // })
 
   const { user } = session;
   return {
-    props: { user, usuarioLogado, dashs }
+    props: { user, usuarioLogado }
   }
 }
 
-const Dashboardmaquinas = ({ user, usuarioLogado, dashs }: DashboardmaquinasProps) => {
-  const { data: session, status } = useSession()
+const Dashboardmaquinas = ({ user, usuarioLogado }: DashboardmaquinasProps) => {
+  const { data: session, status } = useSession();
+  const [socketUrl, setSocketUrl] = useState('ws://192.168.0.102:3001/');
+  const [messageHistory, setMessageHistory] = useState<any[]>([]); 
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+  const [listaMaquinas, setListaMaquinas] = useState<Array<DashmaqProps>>([]);
+
+  useEffect(() => {
+    if (lastMessage !== null) {
+      setMessageHistory((prev) => [...prev, lastMessage]);
+      const list = JSON.parse(lastMessage.data);
+      setListaMaquinas(list.maquinas);
+      console.log(list);
+      console.log(listaMaquinas);
+    }
+  }, [lastMessage]); 
 
   return (
     <div className="flex">
@@ -56,8 +69,8 @@ const Dashboardmaquinas = ({ user, usuarioLogado, dashs }: DashboardmaquinasProp
         <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">Máquinas </h1>
         <div className="flex flex-col items-center space-y-4">
           <div className="flex flex-wrap gap-4">
-            {dashs.map((dash: { id: string, nomeMaq: string, uuid: string, operador: string, idMaq: string }) => (
-              <CompDashMaquinas key={dash.id} uuid={dash.uuid} nomeMaq={dash.nomeMaq} operador={dash.operador} idMaq={dash.idMaq} />
+            {listaMaquinas.map((item, index) => (
+              <CompDashMaquinas key={index} codigo={item.codigo} idIot={item.idIot} nome={item.nome} nomeOperador={item.nomeOperador} status={item.status} />
             ))}
           </div>
         </div>
