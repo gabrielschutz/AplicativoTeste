@@ -1,6 +1,5 @@
-import React, { useRef } from "react";
-import { useEffect, useState } from 'react';
-import axios from 'axios';
+import React, { useEffect, useState } from 'react';
+import useWebSocket, { ReadyState } from 'react-use-websocket';
 
 interface DashmaqProps {
   nomeMaq?: string;
@@ -9,29 +8,20 @@ interface DashmaqProps {
   uuid?: string;
 }
 
-
 export function Dashmaquinas(props: DashmaqProps) {
-
   const [status, setStatus] = useState(null);
+  
+  const [socketUrl, setSocketUrl] = useState('ws://192.168.0.102:3001/');
+
+  const [messageHistory, setMessageHistory] = useState<any[]>([]); 
+
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
   useEffect(() => {
-    const getStatus = async () => {
-      try {
-        const response = await axios.get('/api/StatusLora');
-        setStatus(response.data.status);
-      } catch (error) {
-        console.error('Error fetching status:', error);
-      }
-    };
-
-    getStatus();
-
-    const interval = setInterval(getStatus, 5000);
-
-    return () => {
-      clearInterval(interval);
-    };
-  }, []);
+    if (lastMessage !== null) {
+      setMessageHistory((prev) => [...prev, lastMessage]); 
+    }
+  }, [lastMessage]); 
 
   let statusColor;
 
@@ -54,6 +44,6 @@ export function Dashmaquinas(props: DashmaqProps) {
       </div>
     </div>
   );
-};
+}
 
 export default Dashmaquinas;
