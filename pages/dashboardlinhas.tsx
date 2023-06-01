@@ -7,6 +7,7 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 import { DashmaqProps, DashLinhaMaquinas } from "@/types/types";
 import CompDashMaquinas from "../components/Dashboards/dashboardmaq";
 import styles from "../styles/linhas.module.css";
+import axios from "axios";
 
 interface DashboardLinhasProps {
   user: any;
@@ -53,6 +54,22 @@ const DashBoardLinhas = ({ user, usuarioLogado }: DashboardLinhasProps) => {
     }
   }, [lastMessage]);
 
+  async function handleChangeStatusLine(codigo: Number, status: String){
+    try {
+      console.log("Enviei o Status: ",status);
+      await axios.post('http://localhost:3002/changeStatusLinha', {
+        codigo: codigo,
+        status: status
+      }, {
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        }
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }
+
   return (
     <div className="flex">
       <Sidebar2
@@ -69,7 +86,7 @@ const DashBoardLinhas = ({ user, usuarioLogado }: DashboardLinhasProps) => {
             <button
             className={styles.botao_linha}
               onClick={() => {
-                console.log("clicou");
+                handleChangeStatusLine(item.codigo ?? -1, '3');
               }}
             >
               Desativar linha

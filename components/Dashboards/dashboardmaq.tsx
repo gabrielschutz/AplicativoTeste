@@ -26,9 +26,13 @@ export function Dashmaquinas(props: DashmaqProps) {
   async function handleChangeStatus(status: String) {
     try {
       console.log("Enviei o Status: ",status);
-      await axios.post('http://localhost:3002/changeStatus', {
+      await axios.post('http://localhost:3002/changeStatusMaquina', {
         codigo: props.codigo,
         status: status
+      }, {
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        }
       });
     } catch (error) {
       console.log(error);
