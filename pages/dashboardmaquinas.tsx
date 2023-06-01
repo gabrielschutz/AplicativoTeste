@@ -31,14 +31,6 @@ export async function getServerSideProps(context: NextPageContext) {
     },
   });
 
-  // const dashs = await prismadb.dashMaquinas.findMany({
-  //   where: {
-  //     gerentes: {
-  //       hasEvery: [session.user?.name ?? ''],
-  //     },
-  //   },
-  // })
-
   const { user } = session;
   return {
     props: { user, usuarioLogado }
@@ -46,7 +38,9 @@ export async function getServerSideProps(context: NextPageContext) {
 }
 
 const Dashboardmaquinas = ({ user, usuarioLogado }: DashboardmaquinasProps) => {
+
   const { data: session, status } = useSession();
+  
   const [socketUrl, setSocketUrl] = useState('ws://192.168.0.102:3001/');
   const [messageHistory, setMessageHistory] = useState<any[]>([]); 
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
