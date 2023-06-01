@@ -6,7 +6,7 @@ import prismadb from '@/lib/prismadb'
 import CompDashMaquinas from '../components/Dashboards/dashboardmaq'
 import React, { useEffect, useState } from "react";
 import useWebSocket, { ReadyState } from "react-use-websocket";
-import { DashmaqProps } from "@/types/types";
+import { DashLinhaMaquinas, DashmaqProps } from "@/types/types";
 
 interface DashboardmaquinasProps {
   user: any,
@@ -37,6 +37,7 @@ export async function getServerSideProps(context: NextPageContext) {
   }
 }
 
+
 const Dashboardmaquinas = ({ user, usuarioLogado }: DashboardmaquinasProps) => {
 
   const { data: session, status } = useSession();
@@ -44,15 +45,14 @@ const Dashboardmaquinas = ({ user, usuarioLogado }: DashboardmaquinasProps) => {
   const [socketUrl, setSocketUrl] = useState('ws://192.168.0.102:3001/');
   const [messageHistory, setMessageHistory] = useState<any[]>([]); 
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
-  const [listaMaquinas, setListaMaquinas] = useState<Array<DashmaqProps>>([]);
+  const [listaMaquinas, setListaMaquinas] = useState<Array<DashLinhaMaquinas>>([]);
 
   useEffect(() => {
     if (lastMessage !== null) {
       setMessageHistory((prev) => [...prev, lastMessage]);
       const list = JSON.parse(lastMessage.data);
-      setListaMaquinas(list.maquinas);
-      console.log(list);
-      console.log(listaMaquinas);
+      setListaMaquinas(list.linhas);
+      console.log(list.linhas);
     }
   }, [lastMessage]); 
 
@@ -64,7 +64,9 @@ const Dashboardmaquinas = ({ user, usuarioLogado }: DashboardmaquinasProps) => {
         <div className="flex flex-col items-center space-y-4">
           <div className="flex flex-wrap gap-4">
             {listaMaquinas.map((item, index) => (
-              <CompDashMaquinas key={index} codigo={item.codigo} idIot={item.idIot} nome={item.nome} nomeOperador={item.nomeOperador} status={item.status} />
+              item.maquinas && item.maquinas.map((item2, index2) => (
+                <CompDashMaquinas key={index2} codigo={item2.codigo} idIot={item2.idIot} nome={item2.nome} nomeOperador={item2.nomeOperador} status={item2.status} />
+              ))
             ))}
           </div>
         </div>
