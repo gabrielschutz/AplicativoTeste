@@ -1,84 +1,72 @@
-import { NextPageContext } from "next";
-import { getSession, useSession } from "next-auth/react";
+
+import { NextPageContext } from "next"
+import { getSession, useSession } from "next-auth/react"
 import Sidebar2 from "@/components/SideBar/Sidebar2";
-import prismadb from "@/lib/prismadb";
-import { useEffect, useState } from "react";
-import Dashmaquinas from "../components/Dashboards/dashboardmaq";
+import prismadb from '@/lib/prismadb'
+import Dashlinhas from '../components/Dashboards/dashboardlinha'
+import React, { useEffect, useState } from "react";
+import useWebSocket, { ReadyState } from "react-use-websocket";
+import { DashmaqProps, DashLinhaMaquinas } from "@/types/types";
 
 interface DashboardLinhasProps {
-  user: any;
-  usuarioLogado: any;
-  linhas: any;
+  user: any,
+  usuarioLogado: any
 }
 
 export async function getServerSideProps(context: NextPageContext) {
+
   const session = await getSession(context);
   if (!session) {
     return {
       redirect: {
-        destination: "/auth",
+        destination: '/auth',
         permanent: false,
-      },
-    };
+      }
+    }
   }
 
   const usuarioLogado = await prismadb.user.findUnique({
     where: {
-      usuarioid: session.user?.email ?? undefined,
-    },
-  });
-
-  const linhas = await prismadb.dashLinhas.findMany({
-    where: {
-      unidade: usuarioLogado?.unidade,
-    },
-    include: {
-      maquinas: true,
+      usuarioid: session.user?.email ?? undefined
     },
   });
 
   const { user } = session;
   return {
-    props: { user, usuarioLogado, linhas },
-  };
+    props: { user, usuarioLogado }
+  }
 }
 
-const DashboardLinhas = ({
-  user,
-  usuarioLogado,
-  linhas,
-}: DashboardLinhasProps) => {
+const DashBoardLinhas = ({ user, usuarioLogado }: DashboardLinhasProps) => {
+
   const { data: session, status } = useSession();
+  const [socketUrl, setSocketUrl] = useState('ws://192.168.0.102:3001/');
+  const [messageHistory, setMessageHistory] = useState<any[]>([]);
+  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+
+  const [listaLinhas, setListaLinhas] = useState<Array<DashLinhaMaquinas>>([]);
+
+  useEffect(() => {
+    if (lastMessage !== null) {
+      setMessageHistory((prev) => [...prev, lastMessage]);
+      const list = JSON.parse(lastMessage.data);
+      setListaLinhas(list.linhas);
+      console.log(list);
+      console.log(listaLinhas);
+    }
+  }, [lastMessage]);
 
   return (
     <div className="flex">
       <Sidebar2 nome={session?.user?.name ?? "Usuário desconhecido"} role={usuarioLogado?.role} />
       <div className="hidden lg:block h-screen px-1 items-center justify-center w-full">
-        <h1 className="flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8">Linhas</h1>
-        <div className="flex flex-col items-center space-y-4">
-          <div className="flex flex-wrap gap-4 bg-gray-400 rounded-2xl">
-            {linhas.map((linha: any, index: number) => (
-              <div key={index} className="mb-4"> {/* Adicione a chave "key" com o valor "index" */}
-                <h2 className="flex flex-col items-center space-y-4 text-2xl font-extrabold dark:text-yellow-500 mb-4 mt-2">{linha.nomeLinha}</h2>
-                <div className="flex flex-wrap gap-4">
-                  {linha.maquinas.map((maquina: any) => (
-                    <div className="w-full sm:w-1/2 md:w-1/3 lg:w-1/4 xl:w-1/5" key={maquina.idMaq}>
-                      <Dashmaquinas
-                        nomeMaq={maquina.nomeMaq}
-                        operador={maquina.operador}
-                        uuid={maquina.uuid}
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-
-        </div>
+        <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">Linhas de Produção </h1>
+        {listaLinhas.map((item, index) => (
+          <Dashlinhas key={index} nomeLinha={item.nomeLinha}/>
+        ))}
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default DashboardLinhas;
+export default DashBoardLinhas;

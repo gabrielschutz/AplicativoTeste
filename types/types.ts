@@ -9,4 +9,5 @@ export interface DashmaqProps {
 export interface DashLinhaMaquinas {
     nomeLinha?: String,
     maquinas?: Array<DashmaqProps>
+    handle?: String,
 }

@@ -7,10 +7,10 @@ export function Dashmaquinas(props: DashmaqProps) {
   const [statusName, setStatusName] = useState("");
 
   function getStatusColor(value: String) {
-    if(value == '1'){
+    if (value == '1') {
       setStatusName('Ativo');
       setStatusColor("bg-green-400");
-    } else if(value == '2'){
+    } else if (value == '2') {
       setStatusColor("bg-orange-300");
       setStatusName('Atenção');
     } else {
@@ -21,17 +21,17 @@ export function Dashmaquinas(props: DashmaqProps) {
 
   useEffect(() => {
     getStatusColor(props.status ?? '');
-    console.log('pegou a cor!')
   }, [props.status])
 
-  async function handleDisableMaquina(status: String){
+  async function handleDisableMaquina(status: String) {
     try {
+      console.log("Enviei o Status: ",status);
       await axios.post('http://localhost:3002/changeStatus', {
         codigo: props.codigo,
         status: status
       });
     } catch (error) {
-        console.log(error);
+      console.log(error);
     }
   }
 
@@ -53,6 +53,17 @@ export function Dashmaquinas(props: DashmaqProps) {
           ID Maq: {props.codigo}
         </p>
         <p className=" text-grey-900 text-xs font-semibold">Status: {statusName} </p>
+        <div className="my-3">
+          <button className="bg-green-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-" onClick={(e) => { e.preventDefault(); handleDisableMaquina("1");}}>
+            Ativar
+          </button>
+          <button className="bg-yellow-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-3" onClick={(e) => { e.preventDefault(); handleDisableMaquina("2");}}>
+            Manutenção
+          </button>
+          <button className="bg-red-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-3" onClick={(e) => { e.preventDefault(); handleDisableMaquina("3");}}>
+            Stop
+          </button>
+        </div>
       </div>
     </div>
   );
