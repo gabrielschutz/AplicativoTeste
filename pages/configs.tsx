@@ -3,7 +3,7 @@ import { getSession, useSession } from "next-auth/react"
 import Sidebar from "@/components/SideBar/Sidebar2";
 import prismadb from '@/lib/prismadb'
 import CompDashMaquinas from '../components/Dashboards/dashboardmaq'
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import axios from 'axios';
 import { Console } from "console";
 
@@ -35,7 +35,7 @@ export async function getServerSideProps(context: NextPageContext) {
   }
 }
 
-const Configs = ({ user, usuarioLogado}: configsprops) => {
+const Configs = ({ user, usuarioLogado }: configsprops) => {
 
   const { data: session, status } = useSession()
   const [selectedOption, setSelectedOption] = useState('');
@@ -65,11 +65,16 @@ const Configs = ({ user, usuarioLogado}: configsprops) => {
     idsMaq: [] as string[],
   });
 
+  const [unidade, setUnidade] = useState({
+    nomeUnidade: '',
+    enderecoUnidade: '',
+  });
+
   const [registerUserStatus, setRegisterUserStatus] = useState('');
 
   const register = useCallback(async () => {
     try {
-      const { nome, senha, username, role, unidade} = usuario;
+      const { nome, senha, username, role, unidade } = usuario;
 
       const response = await axios.post('/api/register', {
         nomeUsuario: nome,
@@ -138,21 +143,63 @@ const Configs = ({ user, usuarioLogado}: configsprops) => {
         unidadeLinha: usuarioLogado.unidade
       });
 
-      if (response.data.statusSaida === 'UpdatedIds') {
-        setRegisterLinhaStatus('updated');
-      } else if (response.data.statusSaida === 'Created') {
-        setRegisterLinhaStatus('created');
-      } else if (response.data.statusSaida === 'IdJaAdd') {
-        setRegisterLinhaStatus('inclused');
-      }
 
     } catch (error) {
       console.log(error);
     }
   }, [linha]);
 
+  //======================= Usuarios ===========================================
+
+  
+
+  //======================= UNIDADES ===========================================
+
+
+  //   === UNIDADES Disponiveis ===
+
+const consultarUnidadesDisponiveis = useCallback(async () => {
+  try {
+    const response = await axios.post('/api/consultarUnidades');
+    const unidadesData = response.data;
+  } catch (error) {
+    console.log(error);
+    setRegisterUnidadeStatus('error');
+  }
+}, []);
+
+  const [registerUnidadeStatus, setRegisterUnidadeStatus] = useState<string | null>(null);
+
+  const registerUnidade = useCallback(async () => {
+
+    setRegisterUnidadeStatus(null);
+
+    try {
+
+      const { nomeUnidade, enderecoUnidade } = unidade;
+
+      const response = await axios.post('/api/registerUnidade', {
+        nomeUnidade: nomeUnidade,
+        endereco: enderecoUnidade,
+      });
+
+      if (response.data.statusSaida === 'CRIADA') {
+        setRegisterUnidadeStatus('criado');
+      } else if (response.data.statusSaida === 'EXISTE') {
+        setRegisterUnidadeStatus('existe');
+      }
+
+    } catch (error) {
+      console.log(error);
+      setRegisterUnidadeStatus('error');
+    }
+  }, [unidade]);
+
+  //============================================================================
+
 
   const renderForm = () => {
+    const isAllowed = usuarioLogado.role === "ADMIN";
     switch (selectedOption) {
       case 'opcao1':
         return (
@@ -214,7 +261,7 @@ const Configs = ({ user, usuarioLogado}: configsprops) => {
             <div className="p-4 bg-zinc-50 rounded shadow-lg">
               <h2 className="text-lg font-bold mb-2">Cadastro de Linhas de Produção</h2>
               <form>
-              <div className="mb-4">
+                <div className="mb-4">
                   <label className="block font-medium mb-2">
                     Nome:
                   </label>
@@ -242,7 +289,7 @@ const Configs = ({ user, usuarioLogado}: configsprops) => {
                   />
                 </div>
                 <div className="text-center">
-                  <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); registerLinha();}}>
+                  <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); registerLinha(); }}>
                     Enviar
                   </button>
                 </div>
@@ -266,37 +313,61 @@ const Configs = ({ user, usuarioLogado}: configsprops) => {
           </div>
         );
       case 'opcao3':
-        return (
-          <div className="py-4 px-10">
-            <div className="p-4 bg-zinc-50 rounded shadow-lg">
-              <h2 className="text-lg font-bold mb-2">Cadastro de Unidades</h2>
-              <form>
-                <div className="mb-4">
-                  <label className="block font-medium mb-2">
-                    Nome:
-                  </label>
-                  <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="inputNameIot" type="text" placeholder="Nome da Unidade" />
-                </div>
-                <div className="mb-4">
-                  <label className="block font-medium mb-2">
-                    UUID:
-                  </label>
-                  <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="inputUuidIot" type="text" placeholder="Digite o uuid da IOT de controle" />
-                </div>
-                <div className="text-center">
-                  <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded">
-                    Enviar
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
-        );
-      case 'opcao4':
-
-        const isAllowed = usuarioLogado.role === 'Admin';
 
         if (!isAllowed) {
+          return (
+            <div className="py-4">
+              <div className="p-4 bg-red-300 rounded shadow-lg">
+                <p>Você não tem permissão para acessar esta opção.</p>
+              </div>
+            </div>
+          );
+        } else {
+          return (
+            <div className="py-4 px-10">
+              <div className="p-4 bg-zinc-50 rounded shadow-lg">
+                <h2 className="text-lg font-bold mb-2">Cadastro de Unidades</h2>
+                <form>
+                  <div className="mb-4">
+                    <label className="block font-medium mb-2">
+                      Nome:
+                    </label>
+                    <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="inputNameIot" type="text" placeholder="Nome da Unidade" onChange={(ev) => setUnidade({ ...unidade, nomeUnidade: ev.target.value })} />
+                  </div>
+                  <div className="mb-4">
+                    <label className="block font-medium mb-2">
+                      Endereco:
+                    </label>
+                    <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="inputUuidIot" type="text" placeholder="End da Unidade" onChange={(ev) => setUnidade({ ...unidade, enderecoUnidade: ev.target.value })} />
+                  </div>
+                  <div className="text-center">
+                    <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); registerUnidade(); }}>
+                      Enviar
+                    </button>
+                  </div>
+                </form>
+                {registerUnidadeStatus === 'criado' && (
+                  <div className="p-4 bg-teal-600 rounded shadow-lg m-3">
+                    <p>A unidade foi criada com sucesso.</p>
+                  </div>
+                )}
+                {registerUnidadeStatus === 'existe' && (
+                  <div className="p-4 bg-red-600 rounded shadow-lg m-3">
+                    <p>Ja existe uma unidade com esse Nome!</p>
+                  </div>
+                )}
+                {registerUnidadeStatus === 'error' && (
+                  <div className="p-4 bg-red-600 rounded shadow-lg m-3">
+                    <p>Erro ao criar Unidade.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        }
+      case 'opcao4':
+
+        if (isAllowed) {
           return (
             <div className="py-4">
               <div className="p-4 bg-red-300 rounded shadow-lg">
@@ -335,20 +406,30 @@ const Configs = ({ user, usuarioLogado}: configsprops) => {
                     <label className="block font-medium mb-2">
                       Unidade do Usuário:
                     </label>
-                    <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="inputUuidIot" type="text" placeholder="Digite o username do Usuário" onChange={(ev) => setUsuario({ ...usuario, unidade: ev.target.value })}
-                    />
+                    <select
+                      className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal"
+                      id="inputUnidadeUsuario"
+                      onChange={(ev) => setUsuario({ ...usuario, unidade: ev.target.value })}
+                    >
+                      <option value="">Selecione a unidade</option>
+                      {/* {unidadesDisponiveis.map((unidade, index) => (
+                        <option value={unidade} key={index}>
+                          {unidade.}
+                        </option>
+                      ))} */}
+                    </select>
                   </div>
                   <div className="mb-4">
                     <label className="block font-medium mb-2">
                       Cargo do Usuário:
                     </label>
                     <select className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" onChange={(e) => setUsuario({ ...usuario, role: e.target.value })}>
-                      <option value="Administrador">Administrador</option>
-                      <option value="Gerente">Gerente</option>
+                      <option value="ADMIN">Administrador</option>
+                      <option value="GERENTE">Gerente</option>
                     </select>
                   </div>
                   <div className="text-center">
-                    <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); register(); }}>
+                    <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); consultarUnidadesDisponiveis(); }}>
                       Enviar
                     </button>
                   </div>

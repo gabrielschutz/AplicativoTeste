@@ -34,7 +34,7 @@ model Maquina {
   iotUUID String @unique
   linhaId Int
   iot     IOT    @relation(fields: [iotUUID], references: [uuid])
-  linha   Linha? @relation(fields: [linhaId], references: [id])
+  linha   Linha  @relation(fields: [linhaId], references: [id])
 }
 
 model Linha {

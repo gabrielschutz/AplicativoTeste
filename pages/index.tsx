@@ -21,9 +21,9 @@ export async function getServerSideProps(context: NextPageContext) {
     }
   }
 
-  const usuarioLogado = await prismadb.user.findUnique({
+  const usuarioLogado = await prismadb.usuario.findFirst({
     where: {
-      usuarioid: session.user?.email ?? undefined
+      username: session.user?.email ?? undefined
     }
   });
 

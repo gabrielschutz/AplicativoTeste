@@ -7,11 +7,13 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(405).end();
     }
 
-    const { username, nome, senha, unidadeId, usuario, role } = req.body;
+    const { nomeUsuario, senhaUsuario, usernameUsuario, roleUsuario, unidadeUsuario } = req.body;
+
+    console.log(req.body)
 
     const usuarioExistente = await prismadb.usuario.findFirst({
       where: {
-        username: username,
+        username: usernameUsuario,
       },
     });
 
@@ -21,15 +23,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
 
     const novoUsuario = await prismadb.usuario.create({
       data: {
-        username: username,
-        nome: nome,
-        role: role, // Defina o role do usuário de acordo com a sua lógica
-        senha: senha,
-        unidadeId: unidadeId,
+        username: usernameUsuario,
+        nome: nomeUsuario,
+        role: roleUsuario, // Defina o role do usuário de acordo com a sua lógica
+        senha: senhaUsuario,
+        unidadeId: unidadeUsuario,
       },
     });
 
     return res.status(200).json({ statusSaida: 'Usuário criado' });
+    
   } catch (error) {
     return res.status(400).json({ error: `Ocorreu um erro: ${error}` });
   }
