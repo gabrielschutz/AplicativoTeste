@@ -3,30 +3,32 @@ import prismadb from '@/lib/prismadb';
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
+
     if (req.method !== 'POST') {
       return res.status(405).end();
     }
 
-    const { nomeLinha, unidadeId } = req.body;
+    const { nomeIOT, uuidIOT, ip } = req.body;
 
-    const linhaExistente = await prismadb.unidade.findUnique({
+    const iotExistente = await prismadb.iOT.findUnique({
       where: {
-        nome: nomeLinha
-      }
-    });
-
-    if (linhaExistente) {
-      return res.status(200).json({ statusSaida: 'Linha já existe' });
-    }
-
-    const novaLinha = await prismadb.linha.create({
-      data: {
-        nome: nomeLinha,
-        unidadeId: unidadeId,
+        uuid: uuidIOT,
       },
     });
 
-    return res.status(200).json({ statusSaida: 'Linha criada' });
+    if (iotExistente) {
+      return res.status(200).json({ statusSaida: 'IOT já existe' });
+    }
+
+    const novaIOT = await prismadb.iOT.create({
+      data: {
+        nome: nomeIOT,
+        uuid: uuidIOT,
+        ip: ip,
+      },
+    });
+
+    return res.status(200).json({ statusSaida: 'IOT criada' });
   } catch (error) {
     return res.status(400).json({ error: `Ocorreu um erro: ${error}` });
   }

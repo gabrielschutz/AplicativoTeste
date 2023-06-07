@@ -6,31 +6,31 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     if (req.method !== 'POST') {
       return res.status(405).end();
     }
-    
-    const { nomeUsuario, senhaUsuario, usernameUsuario, roleUsuario, unidadeUsuario } = req.body;
 
-    const existingUser = await prismadb.user.findUnique({
+    const { username, nome, senha, unidadeId, usuario, role } = req.body;
+
+    const usuarioExistente = await prismadb.usuario.findFirst({
       where: {
-        usuarioid: usernameUsuario
-      }
-    })
-
-    if(existingUser){
-      return res.status(200).json({statusSaida : "UsuarioExistente"});
-    }
-
-    const user = await prismadb.user.create({
-      data: {
-        usuarioid: usernameUsuario,
-        unidade: unidadeUsuario,
-        senha: senhaUsuario,
-        nome: nomeUsuario,
-        role: roleUsuario,
-      }
+        username: username,
+      },
     });
 
-    return res.status(200).json({statusSaida : "UsuarioCriado"});
+    if (usuarioExistente) {
+      return res.status(200).json({ statusSaida: 'Usuário já existe' });
+    }
+
+    const novoUsuario = await prismadb.usuario.create({
+      data: {
+        username: username,
+        nome: nome,
+        role: role, // Defina o role do usuário de acordo com a sua lógica
+        senha: senha,
+        unidadeId: unidadeId,
+      },
+    });
+
+    return res.status(200).json({ statusSaida: 'Usuário criado' });
   } catch (error) {
-    return res.status(400).json({ error: `Something went wrong: ${error}` });
+    return res.status(400).json({ error: `Ocorreu um erro: ${error}` });
   }
 }

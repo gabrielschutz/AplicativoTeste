@@ -7,51 +7,28 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(405).end();
     }
 
-    const { nomeMaquina, uuidMaquina, operadorMaquina, idMaquina, gerenteMaquina} = req.body;
+    const { nomeMaquina, iotUUID, linhaId } = req.body;
 
-    const existingMaquina = await prismadb.dashMaquinas.findUnique({
+    const maquinaExistente = await prismadb.maquina.findFirst({
       where: {
-        idMaq: idMaquina
-      }
-    })
-
-    if (existingMaquina){
-
-      if (existingMaquina.gerentes.includes(gerenteMaquina)) {
-        return res.status(200).json({ statusSaida: 'Includes' });
-      }
-
-      const maqUpdate = await prismadb.dashMaquinas.update({
-        where: {
-          idMaq: idMaquina,
-        },
-        data: {
-          gerentes: {
-            push: gerenteMaquina,
-          },
-        },
-      });
-
-      return res.status(200).json({ statusSaida: 'Updated' });
-
-    }
-
-    const dashMaquinas = await prismadb.dashMaquinas.create({
-      data: {
-        idMaq: idMaquina,
-        nomeMaq: nomeMaquina,
-        uuid: uuidMaquina,
-        status: 'Desconhecido',
-        operador: operadorMaquina,
-        gerentes: {
-          set: gerenteMaquina,
-        },
-      }
+        nome: nomeMaquina,
+      },
     });
 
-    return res.status(200).json({ statusSaida: 'Created' });
-    
+    if (maquinaExistente) {
+      return res.status(200).json({ statusSaida: 'Máquina já existe' });
+    }
+
+    const novaMaquina = await prismadb.maquina.create({
+      data: {
+        nome: nomeMaquina,
+        iotUUID: iotUUID,
+        linhaId: linhaId,
+      },
+    });
+
+    return res.status(200).json({ statusSaida: 'Máquina criada' });
   } catch (error) {
-    return res.status(400).json({ error: `Something went wrong: ${error}` });
+    return res.status(400).json({ error: `Ocorreu um erro: ${error}` });
   }
 }

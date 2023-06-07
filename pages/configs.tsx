@@ -23,9 +23,9 @@ export async function getServerSideProps(context: NextPageContext) {
     }
   }
 
-  const usuarioLogado = await prismadb.user.findUnique({
+  const usuarioLogado = await prismadb.usuario.findUnique({
     where: {
-      usuarioid: session.user?.email ?? undefined
+      username: session.user?.email ?? undefined
     }
   });
 
@@ -36,6 +36,7 @@ export async function getServerSideProps(context: NextPageContext) {
 }
 
 const Configs = ({ user, usuarioLogado}: configsprops) => {
+
   const { data: session, status } = useSession()
   const [selectedOption, setSelectedOption] = useState('');
 
@@ -292,7 +293,9 @@ const Configs = ({ user, usuarioLogado}: configsprops) => {
           </div>
         );
       case 'opcao4':
-        const isAllowed = usuarioLogado.role === 'Administrador';
+
+        const isAllowed = usuarioLogado.role === 'Admin';
+
         if (!isAllowed) {
           return (
             <div className="py-4">

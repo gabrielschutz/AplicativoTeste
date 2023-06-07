@@ -3,41 +3,64 @@ generator client {
 }
 
 datasource db {
-  provider = "mongodb"
-  url      = env("DATABASE_URL")
+  provider          = "postgresql"
+  url               = env("POSTGRES_PRISMA_URL")
+  shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING")
 }
 
-model User {
-  id        String  @id @default(auto()) @map("_id") @db.ObjectId
-  nome      String?
-  usuarioid String? @unique
+model Usuario {
+  id        Int     @id @default(autoincrement())
+  username  String  @unique
+  nome      String
+  role      Role    @default(GERENTE)
   senha     String
-  unidade   String
-  role      String?
+  unidadeId Int
+  unidade   Unidade @relation(fields: [unidadeId], references: [id])
 }
 
-model DashMaquinas {
-  id           String      @id @default(auto()) @map("_id") @db.ObjectId
-  idMaq        String?     @unique
-  nomeMaq      String?
-  uuid         String?
-  status       String?
-  operador     String?
-  gerentes     String[]
-  DashLinhas   DashLinhas? @relation(fields: [dashLinhasId], references: [id])
-  dashLinhasId String?     @db.ObjectId
+model IOT {
+  id      Int      @id @default(autoincrement())
+  nome    String
+  uuid    String   @unique
+  ip      String
+  status  status   @default(Manutencao)
+  maquina Maquina?
 }
 
-model DashLinhas {
-  id                  String         @id @default(auto()) @map("_id") @db.ObjectId
-  idLinha             String         @unique
-  nomeLinha           String
-  unidade             String?
-  maquinasCadastradas String[]
-  maquinas            DashMaquinas[]
+model Maquina {
+  id      Int    @id @default(autoincrement())
+  nome    String @unique
+  status  status @default(Manutencao)
+  iotUUID String @unique
+  linhaId Int
+  iot     IOT    @relation(fields: [iotUUID], references: [uuid])
+  linha   Linha? @relation(fields: [linhaId], references: [id])
 }
 
-model DashFabricas {
-  id        String @id @default(auto()) @map("_id") @db.ObjectId
-  idUnidade String @db.ObjectId
+model Linha {
+  id        Int       @id @default(autoincrement())
+  status    status    @default(Manutencao)
+  nome      String    @unique
+  unidadeId Int
+  unidade   Unidade   @relation(fields: [unidadeId], references: [id])
+  maquinas  Maquina[]
+}
+
+model Unidade {
+  id       Int       @id @default(autoincrement())
+  nome     String    @unique
+  endereco String
+  linhas   Linha[]
+  usuarios Usuario[]
+}
+
+enum status {
+  Ativo
+  Manutencao
+  Atencao
+}
+
+enum Role {
+  GERENTE
+  ADMIN
 }
