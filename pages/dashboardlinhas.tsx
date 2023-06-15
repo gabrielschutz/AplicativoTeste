@@ -25,21 +25,15 @@ export async function getServerSideProps(context: NextPageContext) {
     };
   }
 
-  const usuarioLogado = await prismadb.user.findUnique({
-    where: {
-      usuarioid: session.user?.email ?? undefined,
-    },
-  });
-
   const { user } = session;
   return {
-    props: { user, usuarioLogado },
+    props: { user },
   };
 }
 
-const DashBoardLinhas = ({ user, usuarioLogado }: DashboardLinhasProps) => {
+const DashBoardLinhas = ({ user }: DashboardLinhasProps) => {
   const { data: session, status } = useSession();
-  const [socketUrl, setSocketUrl] = useState("ws://192.168.0.102:3001/");
+  const [socketUrl, setSocketUrl] = useState("ws://localhost:3001/");
   const [messageHistory, setMessageHistory] = useState<any[]>([]);
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
@@ -54,11 +48,11 @@ const DashBoardLinhas = ({ user, usuarioLogado }: DashboardLinhasProps) => {
     }
   }, [lastMessage]);
 
-  async function handleChangeStatusLine(codigo: Number, status: String){
+  async function handleChangeStatusLine(nome: String, status: String){
     try {
       console.log("Enviei o Status: ",status);
       await axios.post('http://localhost:3002/changeStatusLinha', {
-        codigo: codigo,
+        nome: nome,
         status: status
       }, {
         headers: {
@@ -74,7 +68,6 @@ const DashBoardLinhas = ({ user, usuarioLogado }: DashboardLinhasProps) => {
     <div className="flex">
       <Sidebar2
         nome={session?.user?.name ?? "Usuário desconhecido"}
-        role={usuarioLogado?.role}
       />
       <div className="hidden lg:block h-screen px-1 items-center justify-center w-full">
         <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">
@@ -86,7 +79,7 @@ const DashBoardLinhas = ({ user, usuarioLogado }: DashboardLinhasProps) => {
             <button
             className={styles.botao_linha}
               onClick={() => {
-                handleChangeStatusLine(item.codigo ?? -1, '3');
+                handleChangeStatusLine(item.nomeLinha ?? '', 'Atencao');
               }}
             >
               Desativar linha
@@ -96,10 +89,8 @@ const DashBoardLinhas = ({ user, usuarioLogado }: DashboardLinhasProps) => {
                 item.maquinas.map((item2, index2) => (
                   <CompDashMaquinas
                     key={index2}
-                    codigo={item2.codigo}
-                    idIot={item2.idIot}
+                    iotUUID={item2.iotUUID}
                     nome={item2.nome}
-                    nomeOperador={item2.nomeOperador}
                     status={item2.status}
                   />
                 ))}

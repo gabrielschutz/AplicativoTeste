@@ -22,6 +22,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     });
 
     return res.status(200).json({ statusSaida: 'IOT criada' });
+    
   } catch (error) {
     return res.status(400).json({ error: `Ocorreu um erro: ${error}` });
   }

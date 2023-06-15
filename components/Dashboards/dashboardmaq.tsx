@@ -3,18 +3,19 @@ import axios from "axios";
 import React, { useEffect, useState } from "react";
 
 export function Dashmaquinas(props: DashmaqProps) {
+
   const [statusColor, setStatusColor] = useState("");
   const [statusName, setStatusName] = useState("");
 
   function getStatusColor(value: String) {
-    if (value == '1') {
+    if (value == 'Ativo') {
       setStatusName('Ativo');
       setStatusColor("bg-green-400");
-    } else if (value == '2') {
-      setStatusColor("bg-orange-300");
+    } else if (value == 'Atencao') {
+      setStatusColor("bg-red-600");
       setStatusName('Atenção');
     } else {
-      setStatusColor("bg-red-400");
+      setStatusColor("bg-yellow-300");
       setStatusName("Manutenção");
     }
   }
@@ -27,7 +28,7 @@ export function Dashmaquinas(props: DashmaqProps) {
     try {
       console.log("Enviei o Status: ",status);
       await axios.post('http://localhost:3002/changeStatusMaquina', {
-        codigo: props.codigo,
+        codigo: props.iotUUID,
         status: status
       }, {
         headers: {
@@ -48,23 +49,17 @@ export function Dashmaquinas(props: DashmaqProps) {
           Nome: {props.nome}
         </p>
         <p className=" text-grey-900 text-xs font-semibold">
-          Operador: {props.nomeOperador}
-        </p>
-        <p className=" text-grey-900 text-xs font-semibold">
-          UUID Lora: {props.idIot}
-        </p>
-        <p className=" text-grey-900 text-xs font-semibold">
-          ID Maq: {props.codigo}
+          UUID Lora: {props.iotUUID}
         </p>
         <p className=" text-grey-900 text-xs font-semibold">Status: {statusName} </p>
         <div className="my-3">
-          <button className="bg-green-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-" onClick={(e) => { e.preventDefault(); handleChangeStatus("1");}}>
+          <button className="bg-green-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-" onClick={(e) => { e.preventDefault(); handleChangeStatus("Ativo");}}>
             Ativar
           </button>
-          <button className="bg-yellow-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-3" onClick={(e) => { e.preventDefault(); handleChangeStatus("2");}}>
+          <button className="bg-yellow-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-3" onClick={(e) => { e.preventDefault(); handleChangeStatus("Manutencao");}}>
             Manutenção
           </button>
-          <button className="bg-red-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-3" onClick={(e) => { e.preventDefault(); handleChangeStatus("3");}}>
+          <button className="bg-red-400 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-3" onClick={(e) => { e.preventDefault(); handleChangeStatus("Atencao");}}>
             Stop
           </button>
         </div>

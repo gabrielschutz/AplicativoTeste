@@ -13,6 +13,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         nome: nomeDaLinha,
         unidadeId: unidadeId,
+        maquinas: Maquinas,
       },
     });
 

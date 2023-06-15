@@ -30,13 +30,14 @@ export default NextAuth({
         }
 
         try {
-          const response = await axios.post("/api/login", {
+
+          const response = await axios.post(`http://${process.env.IPBACK}/auth/login`, {
             usuario: credentials.usuario,
             senha: credentials.senha,
           });
 
-          if (!response.data) {
-            throw new Error("Usuario/senha incorretos");
+          if (response.data.status === "Invalido") {
+            throw new Error("Usuário/senha inválidos");
           }
 
           return {

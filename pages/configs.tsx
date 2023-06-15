@@ -8,6 +8,7 @@ import axios from 'axios';
 import { Console } from "console";
 import Modal from "@/components/modal";
 
+
 interface configsprops {
   user: any,
   usuarioLogado: any
@@ -37,6 +38,8 @@ export async function getServerSideProps(context: NextPageContext) {
 }
 
 const Configs = ({ user, usuarioLogado }: configsprops) => {
+
+  const ipBack = "localhost:3002";
 
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -92,12 +95,12 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
 
       const { nome, senha, username, role, unidade } = usuario;
 
-      const response = await axios.post('/api/register', {
+      const response = await axios.post(`http://${ipBack}/auth/register`, {
         nomeUsuario: nome,
         senhaUsuario: senha,
         usernameUsuario: username,
         roleUsuario: role,
-        unidadeUsuario: unidade,
+        unidadeUsuario: parseInt(unidade),
       });
 
     } catch (error) {
@@ -114,7 +117,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
 
   const consultarIotDisponiveis = useCallback(async () => {
     try {
-      const response = await axios.post('/api/consultarIots');
+      const response = await axios.post(`http://${ipBack}/consulta/iot`);
       setIotDisponiveis(response.data);
       console.log(iotDisponiveis)
     } catch (error) {
@@ -125,10 +128,10 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
   const registerIOT = useCallback(async () => {
     try {
       const { nomeIOT, uuidIOT } = iot;
-      console.log(iot);
-      const response = await axios.post('/api/registerIot', {
+      console.log(`http://${ipBack}/create/iot`);
+      const response = await axios.post(`http://${ipBack}/create/iot`, {
         nomeIOT: nomeIOT,
-        uuidIOT: uuidIOT,
+        uuidIOT: uuidIOT,  
       });
     } catch (error) {
       console.log(error);
@@ -143,7 +146,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
 
   const consultarMaqDisponiveis = useCallback(async () => {
     try {
-      const response = await axios.post('/api/consultarMaquinas');
+      const response = await axios.post(`http://${ipBack}/consulta/maq`);
       setmaqDisponiveis(response.data);
       console.log(maqDisponiveis)
     } catch (error) {
@@ -159,7 +162,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
 
       console.log(maquina)
 
-      const response = await axios.post('/api/registerMaq', {
+      const response = await axios.post(`http://${ipBack}/create/maq`, {
         nomeMaq: nomeMaq,
         uuidIOT: uuidIOT,
       });
@@ -179,9 +182,12 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
     try {
 
       const { nomeDaLinha, Maquinas } = linha;
-      const response = await axios.post('/api/registerLinha', {
+
+      const maquinasNumeros = Maquinas.map(maquina => parseInt(maquina));
+
+      const response = await axios.post(`http://${ipBack}/create/linha`, {
         nomeDaLinha: nomeDaLinha,
-        Maquinas: Maquinas,
+        Maquinas: maquinasNumeros, 
         unidadeId: usuarioLogado?.unidadeId
       });
 
@@ -194,7 +200,6 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
   //============================================================================
 
 
-
   //======================= UNIDADES ===========================================
 
 
@@ -204,7 +209,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
 
   const consultarUnidadesDisponiveis = useCallback(async () => {
     try {
-      const response = await axios.post('/api/consultarUnidades');
+      const response = await axios.post(`http://${ipBack}/consulta/unidade`);
       setUnidadesDisponiveis(response.data);
       console.log(unidadesDisponiveis)
     } catch (error) {
@@ -218,7 +223,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
 
       const { nomeUnidade, enderecoUnidade } = unidade;
 
-      const response = await axios.post('/api/registerUnidade', {
+      const response = await axios.post(`http://${ipBack}/create/unidade`, {
         nomeUnidade: nomeUnidade,
         endereco: enderecoUnidade,
       });
@@ -349,7 +354,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
         );
       case 'opcao3':
 
-        if (!isAllowed) {
+        if (isAllowed) {
           return (
             <div className="py-4">
               <div className="p-4 bg-red-300 rounded shadow-lg">
@@ -457,16 +462,6 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
                     </button>
                   </div>
                 </form>
-                {registerUserStatus === 'created' && (
-                  <div className="p-4 bg-teal-600 rounded shadow-lg m-3">
-                    <p>Usuário criado com sucesso.</p>
-                  </div>
-                )}
-                {registerUserStatus === 'uncreated' && (
-                  <div className="p-4 bg-teal-600 rounded shadow-lg m-3">
-                    <p>Esse username de usuário não está disponível!</p>
-                  </div>
-                )}
               </div>
             </div>
           );
