@@ -8,23 +8,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(405).end();
     }
 
-    const { nomeIOT, uuidIOT, ip } = req.body;
+    const { nomeIOT, uuidIOT } = req.body;
 
-    const iotExistente = await prismadb.iOT.findUnique({
-      where: {
-        uuid: uuidIOT,
-      },
-    });
-
-    if (iotExistente) {
-      return res.status(200).json({ statusSaida: 'IOT já existe' });
-    }
+    console.log(nomeIOT)
+    console.log(uuidIOT)
 
     const novaIOT = await prismadb.iOT.create({
       data: {
         nome: nomeIOT,
         uuid: uuidIOT,
-        ip: ip,
+        ip: '',
       },
     });
 

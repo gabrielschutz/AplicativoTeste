@@ -25,7 +25,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       data: {
         username: usernameUsuario,
         nome: nomeUsuario,
-        role: roleUsuario, // Defina o role do usuário de acordo com a sua lógica
+        role: roleUsuario, 
         senha: senhaUsuario,
         unidadeId: unidadeUsuario,
       },

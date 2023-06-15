@@ -7,21 +7,11 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
       return res.status(405).end();
     }
 
-    const { nomeLinha, unidadeId } = req.body;
-
-    const linhaExistente = await prismadb.unidade.findUnique({
-      where: {
-        nome: nomeLinha
-      }
-    });
-
-    if (linhaExistente) {
-      return res.status(200).json({ statusSaida: 'Linha já existe' });
-    }
+    const { nomeDaLinha, unidadeId, Maquinas } = req.body;
 
     const novaLinha = await prismadb.linha.create({
       data: {
-        nome: nomeLinha,
+        nome: nomeDaLinha,
         unidadeId: unidadeId,
       },
     });

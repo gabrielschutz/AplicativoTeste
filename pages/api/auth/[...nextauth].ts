@@ -1,6 +1,8 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import prismadb from '@/lib/prismadb'
+import { useCallback, useState } from "react";
+import axios from 'axios';
 
 interface User {
   id: string;
@@ -22,35 +24,30 @@ export default NextAuth({
           type: 'password'
         }
       },
-      async authorize(credentials, req) {
+      async authorize(credentials) {
         if (!credentials?.usuario || !credentials?.senha) {
-          throw new Error('Usuario e Senha Requeridos');
+          throw new Error("Usuario e Senha Requeridos");
         }
 
-        const user = await prismadb.usuario.findUnique({
-          where: {
-            username: credentials.usuario
+        try {
+          const response = await axios.post("/api/login", {
+            usuario: credentials.usuario,
+            senha: credentials.senha,
+          });
+
+          if (!response.data) {
+            throw new Error("Usuario/senha incorretos");
           }
-        });
 
-        if (!user || !user.senha) {
-          throw new Error('Usuario nao existente');
+          return {
+            email: response.data.username,
+            name: response.data.nome,
+          } as User;
+        } catch (error) {
+          throw new Error("Falha na autenticação");
         }
-
-        function comparePasswords(password1: string, password2: string): boolean {
-          return password1 === password2;
-        }
-
-        if (!(comparePasswords(credentials.senha, user.senha))) {
-          throw new Error('Senha incorreta');
-        }
-
-        return {
-          email : user.username,
-          name: user.nome,
-        } as User;
-      }
-    })
+      },
+    }),
   ],
   pages: {
     signIn: '/auth'

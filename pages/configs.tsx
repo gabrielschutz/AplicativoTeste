@@ -6,6 +6,7 @@ import CompDashMaquinas from '../components/Dashboards/dashboardmaq'
 import { useCallback, useEffect, useState } from "react";
 import axios from 'axios';
 import { Console } from "console";
+import Modal from "@/components/modal";
 
 interface configsprops {
   user: any,
@@ -37,6 +38,16 @@ export async function getServerSideProps(context: NextPageContext) {
 
 const Configs = ({ user, usuarioLogado }: configsprops) => {
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
+  const openModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+  };
+
   const { data: session, status } = useSession()
   const [selectedOption, setSelectedOption] = useState('');
 
@@ -44,25 +55,27 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
     setSelectedOption(option);
   };
 
+  const [iot, setIot] = useState({
+    uuidIOT: '',
+    nomeIOT: '',
+  });
+
   const [usuario, setUsuario] = useState({
     nome: '',
     senha: '',
     unidade: '',
     username: '',
-    role: 'Administrador'
+    role: ''
   });
 
   const [maquina, setMaquina] = useState({
-    uuid: '',
+    uuidIOT: '',
     nomeMaq: '',
-    idMaq: '',
-    opeMaq: '',
   });
 
   const [linha, setLinha] = useState({
     nomeDaLinha: '',
-    idLinha: '',
-    idsMaq: [] as string[],
+    Maquinas: [] as string[],
   });
 
   const [unidade, setUnidade] = useState({
@@ -70,10 +83,13 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
     enderecoUnidade: '',
   });
 
+  //======================= Usuarios ===========================================
+
   const [registerUserStatus, setRegisterUserStatus] = useState('');
 
   const register = useCallback(async () => {
     try {
+
       const { nome, senha, username, role, unidade } = usuario;
 
       const response = await axios.post('/api/register', {
@@ -84,95 +100,119 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
         unidadeUsuario: unidade,
       });
 
-      if (response.data.statusSaida === 'UsuarioCriado') {
-        setRegisterUserStatus('created');
-      } else if (response.data.statusSaida === 'UsuarioExistente') {
-        setRegisterUserStatus('uncreated');
-      }
-
     } catch (error) {
       console.log(error);
     }
   }, [usuario]);
 
-  const [registerMaqStatus, setRegisterMaqStatus] = useState('');
+  //============================================================================
+
+
+  //======================= IOT ===========================================
+
+  const [iotDisponiveis, setIotDisponiveis] = useState<{ id: number; nome: string; uuid: string; ip: string; status: string }[]>([]);
+
+  const consultarIotDisponiveis = useCallback(async () => {
+    try {
+      const response = await axios.post('/api/consultarIots');
+      setIotDisponiveis(response.data);
+      console.log(iotDisponiveis)
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  const registerIOT = useCallback(async () => {
+    try {
+      const { nomeIOT, uuidIOT } = iot;
+      console.log(iot);
+      const response = await axios.post('/api/registerIot', {
+        nomeIOT: nomeIOT,
+        uuidIOT: uuidIOT,
+      });
+    } catch (error) {
+      console.log(error);
+    }
+  }, [iot]);
+
+  //============================================================================
+
+  //======================= MAQUINA ===========================================
+
+  const [maqDisponiveis, setmaqDisponiveis] = useState<{ id: number; nome: string; uuidIOT: string }[]>([]);
+
+  const consultarMaqDisponiveis = useCallback(async () => {
+    try {
+      const response = await axios.post('/api/consultarMaquinas');
+      setmaqDisponiveis(response.data);
+      console.log(maqDisponiveis)
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
 
   const registerMaquina = useCallback(async () => {
+
     try {
-      const { uuid, nomeMaq, idMaq, opeMaq } = maquina;
+
+      const { nomeMaq, uuidIOT } = maquina;
+
+      console.log(maquina)
 
       const response = await axios.post('/api/registerMaq', {
-        nomeMaquina: nomeMaq,
-        uuidMaquina: uuid,
-        operadorMaquina: opeMaq,
-        gerenteMaquina: session?.user?.name,
-        idMaquina: idMaq
+        nomeMaq: nomeMaq,
+        uuidIOT: uuidIOT,
       });
-
-      if (response.data.statusSaida === 'Updated') {
-        setRegisterMaqStatus('updated');
-      } else if (response.data.statusSaida === 'Created') {
-        setRegisterMaqStatus('created');
-      } else if (response.data.statusSaida === 'Includes') {
-        setRegisterMaqStatus('inclused');
-      }
 
     } catch (error) {
       console.log(error);
     }
+
   }, [maquina]);
 
-  const [registerLinhaStatus, setRegisterLinhaStatus] = useState('');
+  //============================================================================
+
+  //======================= Linhas ===========================================
 
   const registerLinha = useCallback(async () => {
+
     try {
 
-      const { nomeDaLinha, idLinha, idsMaq, } = linha;
-
-      console.log("Nome: ")
-      console.log(nomeDaLinha)
-      console.log("IdLinha: ")
-      console.log(idLinha)
-      console.log("Ids: ")
-      console.log(idsMaq)
-
+      const { nomeDaLinha, Maquinas } = linha;
       const response = await axios.post('/api/registerLinha', {
-        nomeLinha: nomeDaLinha,
-        idsMaq: idsMaq,
-        idDaLinha: idLinha,
-        unidadeLinha: usuarioLogado.unidade
+        nomeDaLinha: nomeDaLinha,
+        Maquinas: Maquinas,
+        unidadeId: usuarioLogado?.unidadeId
       });
-
 
     } catch (error) {
       console.log(error);
     }
+
   }, [linha]);
 
-  //======================= Usuarios ===========================================
+  //============================================================================
 
-  
+
 
   //======================= UNIDADES ===========================================
 
 
   //   === UNIDADES Disponiveis ===
 
-const consultarUnidadesDisponiveis = useCallback(async () => {
-  try {
-    const response = await axios.post('/api/consultarUnidades');
-    const unidadesData = response.data;
-  } catch (error) {
-    console.log(error);
-    setRegisterUnidadeStatus('error');
-  }
-}, []);
+  const [unidadesDisponiveis, setUnidadesDisponiveis] = useState<{ id: number; nome: string; endereco: string }[]>([]);
 
-  const [registerUnidadeStatus, setRegisterUnidadeStatus] = useState<string | null>(null);
+  const consultarUnidadesDisponiveis = useCallback(async () => {
+    try {
+      const response = await axios.post('/api/consultarUnidades');
+      setUnidadesDisponiveis(response.data);
+      console.log(unidadesDisponiveis)
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
 
   const registerUnidade = useCallback(async () => {
-
-    setRegisterUnidadeStatus(null);
 
     try {
 
@@ -183,24 +223,43 @@ const consultarUnidadesDisponiveis = useCallback(async () => {
         endereco: enderecoUnidade,
       });
 
-      if (response.data.statusSaida === 'CRIADA') {
-        setRegisterUnidadeStatus('criado');
-      } else if (response.data.statusSaida === 'EXISTE') {
-        setRegisterUnidadeStatus('existe');
-      }
-
     } catch (error) {
       console.log(error);
-      setRegisterUnidadeStatus('error');
     }
   }, [unidade]);
 
   //============================================================================
 
-
   const renderForm = () => {
     const isAllowed = usuarioLogado.role === "ADMIN";
     switch (selectedOption) {
+      case 'opcao0':
+        return (
+          <div className="py-4 px-10">
+            <div className="p-4 bg-zinc-50 rounded shadow-lg">
+              <h2 className="text-lg font-bold mb-2">Cadastro de IOT</h2>
+              <form>
+                <div className="mb-4">
+                  <label className="block font-medium mb-2">
+                    Nome:
+                  </label>
+                  <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="nome" type="text" placeholder="Nome da Iot" onChange={(ev) => setIot({ ...iot, nomeIOT: ev.target.value })} />
+                </div>
+                <div className="mb-4">
+                  <label className="block font-medium mb-2">
+                    UUID:
+                  </label>
+                  <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="uuid" type="text" placeholder="Digite o uuid da IOT de controle" onChange={(ev) => setIot({ ...iot, uuidIOT: ev.target.value })} />
+                </div>
+                <div className="text-center">
+                  <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); registerIOT(); }}>
+                    Enviar
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        );
       case 'opcao1':
         return (
           <div className="py-4 px-10">
@@ -215,21 +274,25 @@ const consultarUnidadesDisponiveis = useCallback(async () => {
                 </div>
                 <div className="mb-4">
                   <label className="block font-medium mb-2">
-                    UUID:
+                    IOT da Maquina:
                   </label>
-                  <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="uuid" type="text" placeholder="Digite o uuid da IOT de controle" onChange={(ev) => setMaquina({ ...maquina, uuid: ev.target.value })} />
-                </div>
-                <div className="mb-4">
-                  <label className="block font-medium mb-2">
-                    ID:
-                  </label>
-                  <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="id" type="text" placeholder="Digite o ID da maquina!" onChange={(ev) => setMaquina({ ...maquina, idMaq: ev.target.value })} />
-                </div>
-                <div className="mb-4">
-                  <label className="block font-medium mb-2">
-                    Operador:
-                  </label>
-                  <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="operador" type="text" placeholder="Digite o nome do Operador da maquina!" onChange={(ev) => setMaquina({ ...maquina, opeMaq: ev.target.value })} />
+                  <select
+                    className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal"
+                    id="inputUnidadeUsuario"
+                    onChange={(e) => {
+                      const selectedIot = iotDisponiveis.find(iot => iot.id === parseInt(e.target.value));
+                      if(selectedIot){
+                        setMaquina({ ...maquina, uuidIOT: selectedIot.uuid});
+                      }
+                    }}
+                  >
+                    <option value="">Selecione a unidade</option>
+                    {iotDisponiveis.map((iot) => (
+                      <option key={iot.id} value={iot.id}>
+                        {iot.nome}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="text-center">
                   <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); registerMaquina(); }}>
@@ -237,21 +300,6 @@ const consultarUnidadesDisponiveis = useCallback(async () => {
                   </button>
                 </div>
               </form>
-              {registerMaqStatus === 'created' && (
-                <div className="p-4 bg-teal-600 rounded shadow-lg m-3">
-                  <p>A máquina com o ID fornecido foi criada.</p>
-                </div>
-              )}
-              {registerMaqStatus === 'updated' && (
-                <div className="p-4 bg-teal-600 rounded shadow-lg m-3">
-                  <p>A máquina com o ID fornecido já foi criada. Você foi adicionado como operador!.</p>
-                </div>
-              )}
-              {registerMaqStatus === 'inclused' && (
-                <div className="p-4 bg-red-300 rounded shadow-lg m-3">
-                  <p>A máquina com o ID fornecido já inclui você.</p>
-                </div>
-              )}
             </div>
           </div>
         );
@@ -269,24 +317,26 @@ const consultarUnidadesDisponiveis = useCallback(async () => {
                 </div>
                 <div className="mb-4">
                   <label className="block font-medium mb-2">
-                    ID:
+                    Máquinas:
                   </label>
-                  <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="idLinha" type="text" placeholder="ID da Linha" onChange={(ev) => setLinha({ ...linha, idLinha: ev.target.value })} />
-                </div>
-                <div className="mb-4">
-                  <label className="block font-medium mb-2">
-                    IDs das Máquinas:
-                  </label>
-                  <input
+                  <select
                     className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal"
-                    id="idsMaq"
-                    type="text"
-                    placeholder="IDs das Máquinas (separados por vírgula)"
-                    onChange={(ev) => {
-                      const ids = ev.target.value.split(',').map(id => id.trim());
-                      setLinha({ ...linha, idsMaq: ids });
+                    id="inputUnidadeUsuario"
+                    onChange={(e) => {
+                      const selectedMachines = Array.from(e.target.options)
+                        .filter(option => option.selected)
+                        .map(option => option.value);
+                      setLinha({ ...linha, Maquinas: selectedMachines });
                     }}
-                  />
+                    multiple
+                  >
+                    <option value="">Selecione as Máquinas</option>
+                    {maqDisponiveis.map((maquina) => (
+                      <option key={maquina.id} value={maquina.id}>
+                        {maquina.nome}
+                      </option>
+                    ))}
+                  </select>
                 </div>
                 <div className="text-center">
                   <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); registerLinha(); }}>
@@ -294,21 +344,6 @@ const consultarUnidadesDisponiveis = useCallback(async () => {
                   </button>
                 </div>
               </form>
-              {registerLinhaStatus === 'created' && (
-                <div className="p-4 bg-teal-600 rounded shadow-lg m-3">
-                  <p>A Linha com o ID fornecido foi criada.</p>
-                </div>
-              )}
-              {registerLinhaStatus === 'updated' && (
-                <div className="p-4 bg-teal-600 rounded shadow-lg m-3">
-                  <p>A Linha com o ID fornecido já foi criada. Foi adicionado as maquinas com os ids respectivos.</p>
-                </div>
-              )}
-              {registerLinhaStatus === 'inclused' && (
-                <div className="p-4 bg-red-300 rounded shadow-lg m-3">
-                  <p>A Linha com o ID fornecido já esses IDs.</p>
-                </div>
-              )}
             </div>
           </div>
         );
@@ -346,21 +381,6 @@ const consultarUnidadesDisponiveis = useCallback(async () => {
                     </button>
                   </div>
                 </form>
-                {registerUnidadeStatus === 'criado' && (
-                  <div className="p-4 bg-teal-600 rounded shadow-lg m-3">
-                    <p>A unidade foi criada com sucesso.</p>
-                  </div>
-                )}
-                {registerUnidadeStatus === 'existe' && (
-                  <div className="p-4 bg-red-600 rounded shadow-lg m-3">
-                    <p>Ja existe uma unidade com esse Nome!</p>
-                  </div>
-                )}
-                {registerUnidadeStatus === 'error' && (
-                  <div className="p-4 bg-red-600 rounded shadow-lg m-3">
-                    <p>Erro ao criar Unidade.</p>
-                  </div>
-                )}
               </div>
             </div>
           );
@@ -409,14 +429,17 @@ const consultarUnidadesDisponiveis = useCallback(async () => {
                     <select
                       className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal"
                       id="inputUnidadeUsuario"
-                      onChange={(ev) => setUsuario({ ...usuario, unidade: ev.target.value })}
+                      onChange={(e) => {
+
+                        setUsuario({ ...usuario, unidade: e.target.value });
+                      }}
                     >
                       <option value="">Selecione a unidade</option>
-                      {/* {unidadesDisponiveis.map((unidade, index) => (
-                        <option value={unidade} key={index}>
-                          {unidade.}
+                      {unidadesDisponiveis.map((unidade) => (
+                        <option key={unidade.id} value={unidade.id}>
+                          {unidade.nome}
                         </option>
-                      ))} */}
+                      ))}
                     </select>
                   </div>
                   <div className="mb-4">
@@ -429,7 +452,7 @@ const consultarUnidadesDisponiveis = useCallback(async () => {
                     </select>
                   </div>
                   <div className="text-center">
-                    <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); consultarUnidadesDisponiveis(); }}>
+                    <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); register(); }}>
                       Enviar
                     </button>
                   </div>
@@ -460,10 +483,31 @@ const consultarUnidadesDisponiveis = useCallback(async () => {
       <div className="hidden lg:block h-screen px-1 items-center justify-center w-full">
         <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">Configurações</h1>
         <div className="flex flex-col items-center space-y-4">
-          <div className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full" onClick={() => handleOptionClick('opcao1')}>Cadastro de Maquinas/Processos</div>
-          <div className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full" onClick={() => handleOptionClick('opcao2')}>Cadastro de Linhas de Produção</div>
+          <div className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full" onClick={() => {
+            handleOptionClick('opcao0');
+          }}>
+            Cadastro de IOTS
+          </div>
+          <div className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full" onClick={() => {
+            handleOptionClick('opcao1');
+            consultarIotDisponiveis();
+          }}>
+            Cadastro de Maquinas/Processos
+          </div>
+          <div className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full" onClick={() => {
+            handleOptionClick('opcao2');
+            consultarMaqDisponiveis();
+          }}>
+             Cadastro de Linhas de Produção
+          </div>
           <div className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full" onClick={() => handleOptionClick('opcao3')}>Cadastro de Unidades</div>
-          <div className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full" onClick={() => handleOptionClick('opcao4')}>Cadastro de Usuarios</div>
+          <div className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full" onClick={() => {
+            handleOptionClick('opcao4');
+            consultarUnidadesDisponiveis();
+          }}>
+            Cadastro de Usuários
+          </div>
+
         </div>
         {renderForm()}
       </div>

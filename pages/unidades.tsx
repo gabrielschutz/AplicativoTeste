@@ -1,70 +1,81 @@
+import { NextPageContext } from "next";
+import { getSession, useSession } from "next-auth/react";
+import Sidebar from "@/components/SideBar/Sidebar2";
+import prismadb from "@/lib/prismadb";
+import { useCallback, useState, useEffect } from "react";
+import axios from "axios";
 
-import { NextPageContext } from "next"
-import { getSession, useSession } from "next-auth/react"
-import Sidebar2 from "@/components/SideBar/Sidebar2";
-import prismadb from '@/lib/prismadb'
-import CompDashMaquinas from '../components/Dashboards/dashboardmaq'
-import CompDashMaquinasWeb from '../components/Dashboards/dashboardmaqwebsocket'
-import { useState } from "react";
 
-interface DashboardmaquinasProps {
-  user: any,
-  usuarioLogado: any
-  dashs: any
+interface unidadeprops {
+  user: any;
+  usuarioLogado: any;
 }
 
 export async function getServerSideProps(context: NextPageContext) {
-
   const session = await getSession(context);
   if (!session) {
     return {
       redirect: {
-        destination: '/auth',
+        destination: "/auth",
         permanent: false,
-      }
-    }
+      },
+    };
   }
 
-  const usuarioLogado = await prismadb.user.findUnique({
+  const usuarioLogado = await prismadb.usuario.findUnique({
     where: {
-      usuarioid: session.user?.email ?? undefined
+      username: session.user?.email ?? undefined,
     },
   });
 
-  const dashs = await prismadb.dashMaquinas.findMany({
-    where: {
-      gerentes: {
-        hasEvery: [session.user?.name ?? ''],
-      },
-    },
-  })
-
-
   const { user } = session;
   return {
-    props: { user, usuarioLogado, dashs }
-  }
+    props: { user, usuarioLogado },
+  };
 }
 
-const Dashboardmaquinas = ({ user, usuarioLogado, dashs }: DashboardmaquinasProps) => {
-  const { data: session, status } = useSession()
+const Unidades = ({ user, usuarioLogado }: unidadeprops) => {
+  const { data: session, status } = useSession();
+
+  const [unidadesDisponiveis, setUnidadesDisponiveis] = useState<
+    { id: number; nome: string; endereco: string }[]
+  >([]);
+
+  const consultarUnidadesDisponiveis = useCallback(async () => {
+    try {
+      const response = await axios.post("/api/consultarUnidades");
+      setUnidadesDisponiveis(response.data);
+    } catch (error) {
+      console.log(error);
+    }
+  }, []);
+
+  useEffect(() => {
+    consultarUnidadesDisponiveis();
+  }, []);
 
   return (
     <div className="flex">
-      <Sidebar2 nome={session?.user?.name ?? "Usuário desconhecido"} role={usuarioLogado?.role} />
+      <Sidebar
+        nome={session?.user?.name ?? "Usuário desconhecido"}
+        role={usuarioLogado?.role}
+      />
       <div className="hidden lg:block h-screen px-1 items-center justify-center w-full">
-        <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">Máquinas </h1>
-        <div className="flex flex-col items-center space-y-4">
-          <div className="flex flex-wrap gap-4">
-            {dashs.map((dash: { id: string, nomeMaq: string, uuid: string, operador: string }) => (
-              <CompDashMaquinas key={dash.id} uuid={dash.uuid} nomeMaq={dash.nomeMaq} operador={dash.operador} />
-            ))}
-          </div>
+        <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">Unidades</h1>
+        <div className="flex flex-wrap gap-4">
+          {unidadesDisponiveis.map((unidade) => (
+            <div
+              key={unidade.id}
+              className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-2xl"
+            >
+              <h2 className="text-xl font-bold mb-2">{unidade.nome}</h2>
+              <p className="text-gray-500">{unidade.endereco}</p>
+            </div>
+          ))}
         </div>
       </div>
     </div>
+  );
+};
 
-  )
-}
-
-export default Dashboardmaquinas;
+export default Unidades;

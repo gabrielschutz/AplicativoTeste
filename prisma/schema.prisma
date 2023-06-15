@@ -3,9 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider          = "postgresql"
-  url               = env("POSTGRES_PRISMA_URL")
-  shadowDatabaseUrl = env("POSTGRES_URL_NON_POOLING")
+  provider = "postgresql"
+  url      = "postgres://postgres:@192.168.0.102:5433/postgres"
 }
 
 model Usuario {
@@ -32,9 +31,9 @@ model Maquina {
   nome    String @unique
   status  status @default(Manutencao)
   iotUUID String @unique
-  linhaId Int
   iot     IOT    @relation(fields: [iotUUID], references: [uuid])
-  linha   Linha  @relation(fields: [linhaId], references: [id])
+  linha   Linha? @relation(fields: [linhaId], references: [id])
+  linhaId Int?
 }
 
 model Linha {
