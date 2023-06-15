@@ -37,7 +37,7 @@ const Dashboardmaquinas = ({ user }: DashboardmaquinasProps) => {
 
   const { data: session, status } = useSession();
   
-  const [socketUrl, setSocketUrl] = useState('ws://localhost:3001/');
+  const [socketUrl, setSocketUrl] = useState('ws://192.168.1.104:3001/');
   const [messageHistory, setMessageHistory] = useState<any[]>([]); 
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
   const [listaMaquinas, setListaMaquinas] = useState<Array<DashmaqProps>>([]);

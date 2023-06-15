@@ -33,7 +33,7 @@ export async function getServerSideProps(context: NextPageContext) {
 
 const DashBoardLinhas = ({ user }: DashboardLinhasProps) => {
   const { data: session, status } = useSession();
-  const [socketUrl, setSocketUrl] = useState("ws://localhost:3001/");
+  const [socketUrl, setSocketUrl] = useState('ws://192.168.1.104:3001/');
   const [messageHistory, setMessageHistory] = useState<any[]>([]);
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
@@ -51,7 +51,7 @@ const DashBoardLinhas = ({ user }: DashboardLinhasProps) => {
   async function handleChangeStatusLine(nome: String, status: String){
     try {
       console.log("Enviei o Status: ",status);
-      await axios.post('http://localhost:3002/changeStatusLinha', {
+      await axios.post('http://192.168.1.104:3002/changeStatusLinha', {
         nome: nome,
         status: status
       }, {

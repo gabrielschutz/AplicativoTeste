@@ -21,26 +21,21 @@ export async function getServerSideProps(context: NextPageContext) {
     }
   }
 
-  const usuarioLogado = await prismadb.usuario.findFirst({
-    where: {
-      username: session.user?.email ?? undefined
-    }
-  });
 
   const { user } = session;
   return {
-    props: { user, usuarioLogado }
+    props: { user }
   }
 
 }
 
 
-const Home = ({ user, usuarioLogado }: indexProps) => {
+const Home = ({ user }: indexProps) => {
   const { data: session, status } = useSession()
   return (
     
     <div className="flex">
-      <Sidebar2 nome={session?.user?.name ?? "Usuário desconhecido"} role={usuarioLogado?.role} />
+      <Sidebar2 nome={session?.user?.name ?? "Usuário desconhecido"} />
       <div className="hidden lg:block h-screen px-1 items-center justify-center w-full">
           <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">Projeto Toyota</h1>
           <div className="flex flex-col items-center space-y-4">
