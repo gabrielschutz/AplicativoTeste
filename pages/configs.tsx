@@ -25,10 +25,9 @@ export async function getServerSideProps(context: NextPageContext) {
     }
   }
 
-  const usuarioLogado = await prismadb.usuario.findUnique({
-    where: {
-      username: session.user?.email ?? undefined
-    }
+  const usuarioLogado = await axios.post(`http://${process.env.IPBACK}/auth/login`, {
+            usuario: session.user?.email ?? undefined,
+            senha: session.user?.name ?? undefined,
   });
 
   const { user } = session;

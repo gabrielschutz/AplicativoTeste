@@ -12,10 +12,10 @@ export function Dashmaquinas(props: DashmaqProps) {
       setStatusName('Ativo');
       setStatusColor("bg-green-400");
     } else if (value == 'Atencao') {
-      setStatusColor("bg-red-600");
+      setStatusColor("bg-yellow-600");
       setStatusName('Atenção');
-    } else {
-      setStatusColor("bg-yellow-300");
+    } else if (value == 'Manutencao'){
+      setStatusColor("bg-red-600");
       setStatusName("Manutenção");
     }
   }
@@ -56,11 +56,11 @@ export function Dashmaquinas(props: DashmaqProps) {
           <button className="bg-green-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-" onClick={(e) => { e.preventDefault(); handleChangeStatus("Ativo");}}>
             Ativar
           </button>
-          <button className="bg-yellow-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-3" onClick={(e) => { e.preventDefault(); handleChangeStatus("Manutencao");}}>
+          <button className="bg-red-400 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-3" onClick={(e) => { e.preventDefault(); handleChangeStatus("Manutencao");}}>
             Manutenção
           </button>
-          <button className="bg-red-400 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-3" onClick={(e) => { e.preventDefault(); handleChangeStatus("Atencao");}}>
-            Stop
+          <button className="bg-yellow-500 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-3xl mx-3" onClick={(e) => { e.preventDefault(); handleChangeStatus("Atencao");}}>
+            Atenção
           </button>
         </div>
       </div>
