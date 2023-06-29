@@ -26,8 +26,13 @@ export function Dashmaquinas(props: DashmaqProps) {
 
   async function handleChangeStatus(status: String) {
     try {
+
       console.log("Enviei o Status: ",status);
-      await axios.post('http://192.168.1.104:3002/changeStatusMaquina', {
+      console.log(props.ip);
+
+
+      await axios.post(`http://${props.ip}/changeStatusMaquina`, {
+        //http://192.168.1.104:3002/changeStatusMaquina
         codigo: props.iotUUID,
         status: status
       }, {

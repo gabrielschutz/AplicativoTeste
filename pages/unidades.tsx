@@ -7,34 +7,38 @@ import axios from "axios";
 
 
 interface unidadeprops {
-  user: any;
-  usuarioLogado: any;
+  dadosUser: any
+  IP_PS: any
 }
 
+
 export async function getServerSideProps(context: NextPageContext) {
+
   const session = await getSession(context);
   if (!session) {
     return {
       redirect: {
-        destination: "/auth",
+        destination: '/auth',
         permanent: false,
-      },
-    };
+      }
+    }
   }
 
-  const usuarioLogado = await prismadb.usuario.findUnique({
-    where: {
-      username: session.user?.email ?? undefined,
-    },
+  const usuarioLogado = await axios.post(`http://${process.env.IPBACK}/auth/login`, {
+    usuario: session.user?.email ?? undefined,
+    senha: session.user?.name ?? undefined,
   });
 
-  const { user } = session;
+  const IP_PS = process.env.IPBACK;
+
+  const dadosUser = usuarioLogado.data;
+
   return {
-    props: { user, usuarioLogado },
-  };
+    props: { dadosUser, IP_PS }
+  }
 }
 
-const Unidades = ({ user, usuarioLogado }: unidadeprops) => {
+const Unidades = ({ dadosUser, IP_PS }: unidadeprops) => {
   const { data: session, status } = useSession();
 
   const [unidadesDisponiveis, setUnidadesDisponiveis] = useState<
@@ -43,7 +47,7 @@ const Unidades = ({ user, usuarioLogado }: unidadeprops) => {
 
   const consultarUnidadesDisponiveis = useCallback(async () => {
     try {
-      const response = await axios.post("/api/consultarUnidades");
+      const response = await axios.get(`http://${IP_PS}/consulta/unidade`);
       setUnidadesDisponiveis(response.data);
     } catch (error) {
       console.log(error);
@@ -57,8 +61,8 @@ const Unidades = ({ user, usuarioLogado }: unidadeprops) => {
   return (
     <div className="flex">
       <Sidebar
-        nome={session?.user?.name ?? "Usuário desconhecido"}
-        role={usuarioLogado?.role}
+        nome={dadosUser.nome ?? "Usuário desconhecido"}
+        role={dadosUser.role}
       />
       <div className="hidden lg:block h-screen px-1 items-center justify-center w-full">
         <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">Unidades</h1>

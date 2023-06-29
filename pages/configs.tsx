@@ -6,12 +6,10 @@ import CompDashMaquinas from '../components/Dashboards/dashboardmaq'
 import { useCallback, useEffect, useState } from "react";
 import axios from 'axios';
 import { Console } from "console";
-import Modal from "@/components/modal";
 
 
 interface configsprops {
-  user: any,
-  usuarioLogado: any
+  dadosUser: any
 }
 
 export async function getServerSideProps(context: NextPageContext) {
@@ -26,17 +24,20 @@ export async function getServerSideProps(context: NextPageContext) {
   }
 
   const usuarioLogado = await axios.post(`http://${process.env.IPBACK}/auth/login`, {
-            usuario: session.user?.email ?? undefined,
-            senha: session.user?.name ?? undefined,
+    usuario: session.user?.email ?? undefined,
+    senha: session.user?.name ?? undefined,
   });
 
-  const { user } = session;
+
+
+  const dadosUser = usuarioLogado.data;
+
   return {
-    props: { user, usuarioLogado }
+    props: { dadosUser }
   }
 }
 
-const Configs = ({ user, usuarioLogado }: configsprops) => {
+const Configs = ({ dadosUser }: configsprops) => {
 
   const ipBack = "localhost:3002";
 
@@ -50,7 +51,6 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
     setIsModalOpen(false);
   };
 
-  const { data: session, status } = useSession()
   const [selectedOption, setSelectedOption] = useState('');
 
   const handleOptionClick = (option: string) => {
@@ -116,7 +116,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
 
   const consultarIotDisponiveis = useCallback(async () => {
     try {
-      const response = await axios.post(`http://${ipBack}/consulta/iot`);
+      const response = await axios.get(`http://${ipBack}/consulta/iot`);
       setIotDisponiveis(response.data);
       console.log(iotDisponiveis)
     } catch (error) {
@@ -130,7 +130,8 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
       console.log(`http://${ipBack}/create/iot`);
       const response = await axios.post(`http://${ipBack}/create/iot`, {
         nomeIOT: nomeIOT,
-        uuidIOT: uuidIOT,  
+        uuidIOT: uuidIOT,
+        ip: "0.0.0.0"
       });
     } catch (error) {
       console.log(error);
@@ -145,7 +146,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
 
   const consultarMaqDisponiveis = useCallback(async () => {
     try {
-      const response = await axios.post(`http://${ipBack}/consulta/maq`);
+      const response = await axios.get(`http://${ipBack}/consulta/maq`);
       setmaqDisponiveis(response.data);
       console.log(maqDisponiveis)
     } catch (error) {
@@ -176,18 +177,28 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
 
   //======================= Linhas ===========================================
 
+  const handleMaquinasChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const maquinasInput = event.target.value;
+    const maquinasArray = maquinasInput.split(",").map(num => num.trim());
+    setLinha({ ...linha, Maquinas: maquinasArray });
+  };
+
+
   const registerLinha = useCallback(async () => {
 
     try {
 
       const { nomeDaLinha, Maquinas } = linha;
 
-      const maquinasNumeros = Maquinas.map(maquina => parseInt(maquina));
+
+      console.log(nomeDaLinha)
+      console.log(Maquinas)
+      console.log(dadosUser?.unidadeId)
 
       const response = await axios.post(`http://${ipBack}/create/linha`, {
         nomeDaLinha: nomeDaLinha,
-        Maquinas: maquinasNumeros, 
-        unidadeId: usuarioLogado?.unidadeId
+        Maquinas: Maquinas,
+        unidadeId: dadosUser?.unidadeId
       });
 
     } catch (error) {
@@ -208,9 +219,8 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
 
   const consultarUnidadesDisponiveis = useCallback(async () => {
     try {
-      const response = await axios.post(`http://${ipBack}/consulta/unidade`);
+      const response = await axios.get(`http://${ipBack}/consulta/unidade`);
       setUnidadesDisponiveis(response.data);
-      console.log(unidadesDisponiveis)
     } catch (error) {
       console.log(error);
     }
@@ -235,7 +245,8 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
   //============================================================================
 
   const renderForm = () => {
-    const isAllowed = usuarioLogado.role === "ADMIN";
+
+
     switch (selectedOption) {
       case 'opcao0':
         return (
@@ -285,8 +296,8 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
                     id="inputUnidadeUsuario"
                     onChange={(e) => {
                       const selectedIot = iotDisponiveis.find(iot => iot.id === parseInt(e.target.value));
-                      if(selectedIot){
-                        setMaquina({ ...maquina, uuidIOT: selectedIot.uuid});
+                      if (selectedIot) {
+                        setMaquina({ ...maquina, uuidIOT: selectedIot.uuid });
                       }
                     }}
                   >
@@ -320,27 +331,18 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
                   <input className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal" id="nomeLinha" type="text" placeholder="Nome da Linha" onChange={(ev) => setLinha({ ...linha, nomeDaLinha: ev.target.value })} />
                 </div>
                 <div className="mb-4">
-                  <label className="block font-medium mb-2">
-                    Máquinas:
-                  </label>
-                  <select
+                  <label className="block font-medium mb-2">Máquinas:</label>
+                  <input
                     className="border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-md shadow-sm py-2 px-4 block w-full appearance-none leading-normal"
-                    id="inputUnidadeUsuario"
-                    onChange={(e) => {
-                      const selectedMachines = Array.from(e.target.options)
-                        .filter(option => option.selected)
-                        .map(option => option.value);
-                      setLinha({ ...linha, Maquinas: selectedMachines });
-                    }}
-                    multiple
-                  >
-                    <option value="">Selecione as Máquinas</option>
-                    {maqDisponiveis.map((maquina) => (
-                      <option key={maquina.id} value={maquina.id}>
-                        {maquina.nome}
-                      </option>
-                    ))}
-                  </select>
+                    id="maquinasInput"
+                    type="text"
+                    placeholder="Digite o IDs das máquinas separados por vírgula"
+                    onChange={handleMaquinasChange}
+                  />
+                  <label className="block font-medium mb-2">Máquinas Disponíveis:</label>
+                  {maqDisponiveis.map((maquina) => (
+                    <div key={maquina.id}>Nome: {maquina.nome} ---- ID: {maquina.id}</div>
+                  ))}
                 </div>
                 <div className="text-center">
                   <button className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded" onClick={(e) => { e.preventDefault(); registerLinha(); }}>
@@ -353,7 +355,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
         );
       case 'opcao3':
 
-        if (isAllowed) {
+        if (dadosUser.role != "ADMIN") {
           return (
             <div className="py-4">
               <div className="p-4 bg-red-300 rounded shadow-lg">
@@ -391,7 +393,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
         }
       case 'opcao4':
 
-        if (isAllowed) {
+        if (dadosUser.role != "ADMIN") {
           return (
             <div className="py-4">
               <div className="p-4 bg-red-300 rounded shadow-lg">
@@ -473,7 +475,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
   return (
 
     <div className="flex">
-      <Sidebar nome={session?.user?.name ?? "Usuário desconhecido"} role={usuarioLogado?.role} />
+      <Sidebar nome={dadosUser?.nome ?? "Usuário desconhecido"} role={dadosUser?.role} />
       <div className="hidden lg:block h-screen px-1 items-center justify-center w-full">
         <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">Configurações</h1>
         <div className="flex flex-col items-center space-y-4">
@@ -492,7 +494,7 @@ const Configs = ({ user, usuarioLogado }: configsprops) => {
             handleOptionClick('opcao2');
             consultarMaqDisponiveis();
           }}>
-             Cadastro de Linhas de Produção
+            Cadastro de Linhas de Produção
           </div>
           <div className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full" onClick={() => handleOptionClick('opcao3')}>Cadastro de Unidades</div>
           <div className="bg-zinc-600 hover:bg-teal-600 text-white font-bold py-2 px-4 rounded-full" onClick={() => {

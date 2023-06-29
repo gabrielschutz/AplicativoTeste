@@ -10,48 +10,79 @@ import styles from "../styles/linhas.module.css";
 import axios from "axios";
 
 interface DashboardLinhasProps {
-  user: any;
-  usuarioLogado: any;
+  dadosUser: any
+  IP_WS: any
+  IP_PS: any
 }
 
+
 export async function getServerSideProps(context: NextPageContext) {
+
   const session = await getSession(context);
   if (!session) {
     return {
       redirect: {
-        destination: "/auth",
+        destination: '/auth',
         permanent: false,
-      },
-    };
+      }
+    }
   }
 
-  const { user } = session;
+  const usuarioLogado = await axios.post(`http://${process.env.IPBACK}/auth/login`, {
+    usuario: session.user?.email ?? undefined,
+    senha: session.user?.name ?? undefined,
+  });
+
+  const IP_WS = process.env.IPBACKWS;
+  const IP_PS = process.env.IPBACK;
+
+
+  const dadosUser = usuarioLogado.data;
+
   return {
-    props: { user },
-  };
+    props: { dadosUser, IP_WS, IP_PS }
+  }
 }
 
-const DashBoardLinhas = ({ user }: DashboardLinhasProps) => {
+const DashBoardLinhas = ({ dadosUser, IP_WS, IP_PS }: DashboardLinhasProps) => {
+
   const { data: session, status } = useSession();
-  const [socketUrl, setSocketUrl] = useState('ws://192.168.1.104:3001/');
+  const [socketUrl, setSocketUrl] = useState(`ws://${IP_WS}/`);
   const [messageHistory, setMessageHistory] = useState<any[]>([]);
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
 
   const [listaLinhas, setListaLinhas] = useState<Array<DashLinhaMaquinas>>([]);
+  const [listaMaquinas, setListaMaquinas] = useState<Array<DashmaqProps>>([]);
 
   useEffect(() => {
+
+
     if (lastMessage !== null) {
       setMessageHistory((prev) => [...prev, lastMessage]);
+
       const list = JSON.parse(lastMessage.data);
-      setListaLinhas(list.linhas);
-      console.log(list.linhas);
+      setListaMaquinas(list.maquinas);
+
+      const linhasSet = new Set<number>();
+      list.maquinas.forEach((maquina: { linha: { id: number; nomeLinha: string; } }) => {
+        linhasSet.add(maquina.linha.id);
+      });
+
+      const linhas = Array.from(linhasSet).map((id: number) => {
+        const maquina = list.maquinas.find((m: { linha: { id: number; nomeLinha: string; } }) => m.linha.id === id);
+        return maquina ? maquina.linha : null;
+      }).filter((linha: { id: number; nomeLinha: string; } | null) => linha !== null);
+
+      setListaLinhas(linhas);
+      //console.log(linhas);
     }
+
   }, [lastMessage]);
 
-  async function handleChangeStatusLine(nome: String, status: String){
+  async function handleChangeStatusLine(nome: String, status: String) {
     try {
-      console.log("Enviei o Status: ",status);
-      await axios.post('http://192.168.1.104:3002/changeStatusLinha', {
+      console.log("Enviei o Status: ", status);
+      await axios.post(`http://${IP_PS}/changeStatusLinha`, {
         nome: nome,
         status: status
       }, {
@@ -66,9 +97,7 @@ const DashBoardLinhas = ({ user }: DashboardLinhasProps) => {
 
   return (
     <div className="flex">
-      <Sidebar2
-        nome={session?.user?.name ?? "Usuário desconhecido"}
-      />
+      <Sidebar2 nome={dadosUser?.nome ?? "Usuário desconhecido"} role={dadosUser?.role} />
       <div className="hidden lg:block h-screen px-1 items-center justify-center w-full">
         <h1 className=" flex flex-col items-center space-y-4 text-5xl font-extrabold dark:text-gray-700 mb-8 ">
           Linhas de Produção{" "}
@@ -77,26 +106,21 @@ const DashBoardLinhas = ({ user }: DashboardLinhasProps) => {
           <div className={styles.linha} key={index}>
             <h1 className={styles.h1_linha}>{item.nomeLinha}</h1>
             <button
-            className={styles.botao_linha}
+              className={styles.botao_linha}
               onClick={() => {
-                handleChangeStatusLine(item.nomeLinha ?? '', 'Atencao');
+                handleChangeStatusLine(item.nomeLinha ?? '', 'Manutencao');
               }}
             >
               Desativar linha
             </button>
             <div className={styles.cadaLinha}>
-              {item.maquinas &&
-                item.maquinas.map((item2, index2) => (
-                  <CompDashMaquinas
-                    key={index2}
-                    iotUUID={item2.iotUUID}
-                    nome={item2.nome}
-                    status={item2.status}
-                  />
-                ))}
+              {listaMaquinas.map((item, index) => (
+                <CompDashMaquinas key={index} iotUUID={item.iotUUID} nome={item.nome} status={item.status} ip={IP_PS} />
+              ))}
             </div>
           </div>
         ))}
+
       </div>
     </div>
   );

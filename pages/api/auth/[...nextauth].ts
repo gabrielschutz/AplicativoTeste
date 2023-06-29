@@ -8,6 +8,7 @@ interface User {
   id: string;
   email: string | null;
   name: string | null;
+  naaweawme: string | null;
 }
 
 export default NextAuth({
@@ -36,14 +37,18 @@ export default NextAuth({
             senha: credentials.senha,
           });
 
+          console.log("here")
+
           if (response.data.status === "Invalido") {
             throw new Error("Usuário/senha inválidos");
           }
 
           return {
             email: response.data.username,
-            name: response.data.nome,
+            name: response.data.senha,
           } as User;
+
+
         } catch (error) {
           throw new Error("Falha na autenticação");
         }
